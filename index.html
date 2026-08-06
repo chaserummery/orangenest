@@ -612,15 +612,16 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       <div class="login-title">欢迎回来 👋</div>
       <div class="login-sub" id="login-sub">输入邮箱，我们发一封登录链接给你<br>无需密码，点击链接直接登录</div>
       <div id="login-form">
-        <input class="login-input" id="login-email" type="email" placeholder="your@email.com" style="margin-bottom:10px"/>
-        <button class="login-btn" onclick="sendMagicLink()">发送登录链接 →</button>
+        <input class="login-input" id="login-email" type="email" placeholder="your@email.com" style="margin-bottom:8px"/>
+        <input class="login-input" id="login-pwd" type="password" placeholder="设置密码（可选，填了直接登录）" style="margin-bottom:10px"/>
+        <button class="login-btn" onclick="sendMagicLink()">登录 / 注册 →</button>
       </div>
       <div class="login-sent" id="login-sent">
         <div class="login-sent-icon">📬</div>
         <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">邮件已发送！</div>
         <div style="font-size:13px;color:var(--ink3);line-height:1.7">去查收邮件，点击链接即可登录。<br>没收到？检查垃圾邮件箱。</div>
       </div>
-      <div class="login-hint">登录后可以发布房源、收藏房源、管理你的发布</div>
+      <div class="login-hint">填密码可直接登录；不填密码则发登录链接到邮箱</div>
     </div>
   </div>
 </div>
@@ -703,7 +704,32 @@ document.addEventListener('click', e => { if(!e.target.closest('.nav-avatar')&&!
 
 async function sendMagicLink(){
   const email = document.getElementById('login-email').value.trim();
+  const pwd = document.getElementById('login-pwd').value.trim();
   if(!email){ showToast('请输入邮箱'); return; }
+
+  // 如果填了密码，用密码登录/注册
+  if(pwd){
+    // 先试登录
+    let { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+    if(error && error.message.includes('Invalid login')){
+      // 账号不存在，自动注册
+      const res = await sb.auth.signUp({ email, password: pwd });
+      if(res.error){ showToast('注册失败：'+res.error.message); return; }
+      data = res.data;
+    } else if(error){
+      showToast('登录失败：'+error.message); return;
+    }
+    if(data?.user){
+      currentUser = data.user;
+      renderNavAuth();
+      loadFavIds();
+      closeLogin();
+      showToast('✅ 登录成功！');
+    }
+    return;
+  }
+
+  // 没填密码，用 Magic Link
   const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
   if(error){ showToast('发送失败：'+error.message); return; }
   document.getElementById('login-form').style.display = 'none';
