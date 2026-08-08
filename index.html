@@ -113,10 +113,6 @@ img{display:block}
 .ptag-nopet{background:rgba(220,38,38,.9);color:#fff}
 .ptag-status{background:rgba(255,255,255,.88);color:var(--ink);border:1px solid rgba(0,0,0,.08)}
 .pcount{background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
-/* 收藏心 */
-.fav-btn{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.88);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;z-index:5;backdrop-filter:blur(4px)}
-.fav-btn:hover{transform:scale(1.15)}
-.fav-btn.on{background:var(--red-light)}
 .cbody{padding:14px 16px 16px}
 .crow1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:3px}
 .caddr{font-size:14px;font-weight:600;color:var(--ink)}
@@ -273,9 +269,6 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 .mbtn-primary{background:var(--orange);color:#fff;border-color:var(--orange)}.mbtn-primary:hover{background:#B45309}
 .copy-toast{text-align:center;padding:6px;font-size:12px;color:var(--teal);font-weight:600;display:none}
 
-/* FAVORITES SCREEN */
-.fav-screen-wrap{max-width:700px;margin:0 auto;padding:24px 24px 80px}
-
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1510;color:#fff;padding:9px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
@@ -289,6 +282,9 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 .user-menu-item.danger{color:var(--red)}
 .user-email{padding:12px 16px;font-size:11px;color:var(--ink3);border-bottom:1px solid var(--cream2);background:var(--cream)}
 
+.lang-switcher{display:flex;align-items:center;background:var(--cream2);border-radius:20px;padding:2px;border:1px solid var(--cream3)}
+.lang-btn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:18px;border:none;background:transparent;color:var(--ink3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;letter-spacing:.3px}
+.lang-btn.active{background:#fff;color:var(--orange);box-shadow:0 1px 4px rgba(0,0,0,.1)}
 @media(max-width:680px){
   .hiw-steps{grid-template-columns:1fr;gap:20px}.hiw-arrow{display:none}
   .hero-title{font-size:36px}.hero-content{padding:40px 20px 36px}
@@ -311,9 +307,12 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       <span class="nav-logo-cn">橙舍</span>
     </div>
     <div class="nav-links" id="nav-links">
-      <button class="nav-btn nav-btn-ghost" onclick="goFavs()">❤️ 收藏</button>
-      <button class="nav-btn nav-btn-outline" onclick="showMyListings()">我的发布</button>
-      <button class="nav-btn nav-btn-fill" onclick="gatePost()">发布房源</button>
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="lang-zh" onclick="setLang('zh')">中</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+      <button class="nav-btn nav-btn-outline" onclick="showMyListings()" data-i18n="nav_mine">我的发布</button>
+      <button class="nav-btn nav-btn-fill" onclick="gatePost()" data-i18n="nav_post">发布房源</button>
       <div id="nav-auth"></div>
     </div>
   </nav>
@@ -322,7 +321,6 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
   <div class="user-menu" id="user-menu">
     <div class="user-email" id="user-email-display"></div>
     <div class="user-menu-item" onclick="showMyListings();closeUserMenu()">📋 我的发布</div>
-    <div class="user-menu-item" onclick="goFavs();closeUserMenu()">❤️ 我的收藏</div>
     <div class="user-menu-item danger" onclick="signOut()">退出登录</div>
   </div>
 
@@ -433,7 +431,6 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
     <button class="btn-back" onclick="goScreen('s-list')">← 返回</button>
     <span class="dnav-title" id="d-title"></span>
     <div class="dnav-actions">
-      <button class="nav-btn nav-btn-ghost" style="padding:6px 12px;font-size:12px" id="d-fav-btn" onclick="toggleFavDetail()">♡ 收藏</button>
       <button class="nav-btn nav-btn-outline" style="padding:6px 12px;font-size:12px" onclick="openShareDetail()">📤 分享</button>
     </div>
   </nav>
@@ -587,20 +584,6 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
   </div>
 </div>
 
-<!-- ══ FAVORITES SCREEN ══ -->
-<div class="screen" id="s-favs">
-  <nav class="nav">
-    <button class="btn-back" onclick="goScreen('s-list')">← 返回</button>
-    <div class="nav-logo"><span class="nav-logo-en" style="font-size:17px">我的收藏</span></div>
-    <div style="width:80px"></div>
-  </nav>
-  <div class="fav-screen-wrap">
-    <div id="favs-grid" class="lgrid" style="padding:0">
-      <div class="loading-state"><div class="loading-spinner"></div></div>
-    </div>
-  </div>
-</div>
-
 <!-- ══ LOGIN MODAL ══ -->
 <div class="modal-bg" id="login-modal">
   <div class="modal">
@@ -662,7 +645,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ══ STATE ══
 const TODAY = new Date();
-let ALL_ROOMS = [], FAVS = new Set();
+let ALL_ROOMS = [];
 let cur = null, slide = 0, calY = 0, calM = 0;
 let currentUser = null, sortMode = 'new';
 const sel = {};
@@ -672,20 +655,7 @@ const formState = { pet: null, occ: null, flex: null, renew: null };
 sb.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   renderNavAuth();
-  if(currentUser) loadFavIds();
 });
-
-async function loadFavIds(){
-  if(!currentUser) return;
-  const { data } = await sb.from('favorites').select('listing_id').eq('user_id', currentUser.id);
-  FAVS = new Set((data||[]).map(f => f.listing_id));
-  document.querySelectorAll('.fav-btn').forEach(btn => {
-    const id = btn.dataset.id;
-    btn.textContent = FAVS.has(id) ? '❤️' : '♡';
-    btn.classList.toggle('on', FAVS.has(id));
-  });
-  updateDetailFavBtn();
-}
 
 function renderNavAuth(){
   const el = document.getElementById('nav-auth');
@@ -753,63 +723,6 @@ function gatePost(){
 }
 
 // ══ 收藏 ══
-async function toggleFav(e, id){
-  e.stopPropagation();
-  if(!currentUser){ openLogin(); showToast('收藏需要先登录'); return; }
-  if(FAVS.has(id)){
-    await sb.from('favorites').delete().eq('user_id', currentUser.id).eq('listing_id', id);
-    FAVS.delete(id);
-    showToast('已取消收藏');
-  } else {
-    await sb.from('favorites').insert({ user_id: currentUser.id, listing_id: id });
-    FAVS.add(id);
-    showToast('❤️ 已收藏');
-  }
-  document.querySelectorAll(`.fav-btn[data-id="${id}"]`).forEach(btn => {
-    btn.textContent = FAVS.has(id) ? '❤️' : '♡';
-    btn.classList.toggle('on', FAVS.has(id));
-  });
-  updateDetailFavBtn();
-}
-
-function updateDetailFavBtn(){
-  if(!cur) return;
-  const btn = document.getElementById('d-fav-btn');
-  if(!btn) return;
-  btn.textContent = FAVS.has(cur.id) ? '❤️ 已收藏' : '♡ 收藏';
-}
-
-async function toggleFavDetail(){
-  if(!cur) return;
-  if(!currentUser){ openLogin(); showToast('收藏需要先登录'); return; }
-  await toggleFavById(cur.id);
-  updateDetailFavBtn();
-}
-
-async function toggleFavById(id){
-  if(FAVS.has(id)){
-    await sb.from('favorites').delete().eq('user_id', currentUser.id).eq('listing_id', id);
-    FAVS.delete(id); showToast('已取消收藏');
-  } else {
-    await sb.from('favorites').insert({ user_id: currentUser.id, listing_id: id });
-    FAVS.add(id); showToast('❤️ 已收藏');
-  }
-  updateDetailFavBtn();
-}
-
-async function goFavs(){
-  if(!currentUser){ openLogin(); showToast('查看收藏需要先登录'); return; }
-  goScreen('s-favs');
-  document.getElementById('favs-grid').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div></div>';
-  const { data } = await sb.from('favorites').select('listing_id').eq('user_id', currentUser.id);
-  const ids = (data||[]).map(f => f.listing_id);
-  if(!ids.length){ document.getElementById('favs-grid').innerHTML = '<div class="empty-state"><div class="empty-icon">♡</div><div class="empty-title">还没有收藏</div><div class="empty-sub">在房源列表点心形按钮收藏</div></div>'; return; }
-  const { data: rooms } = await sb.from('listings').select('*').in('id', ids).eq('status','active');
-  const list = (rooms||[]).map(rowToRoom);
-  if(!list.length){ document.getElementById('favs-grid').innerHTML = '<div class="empty-state"><div class="empty-icon">♡</div><div class="empty-title">收藏的房源已下架</div></div>'; return; }
-  document.getElementById('favs-grid').innerHTML = list.map(r => cardHTML(r)).join('');
-}
-
 // ══ DATA ══
 function rowToRoom(r){
   return {
@@ -876,7 +789,7 @@ function doFilter(){
   document.getElementById('rcount').textContent = `${res.length} 个房源`;
   const hasF = Object.keys(sel).length>0||fF||fT;
   document.getElementById('clear-btn').classList.toggle('show', !!hasF);
-  renderCards(res);
+  renderCardsWithTranslation(res);
 }
 
 // ══ 时间格式 ══
@@ -895,7 +808,6 @@ function fmtS(d){ if(!d) return'—'; return`${d.getMonth()+1}月${d.getDate()}�
 
 // ══ CARDS ══
 function cardHTML(r){
-  const isFav = FAVS.has(r.id);
   return `<div class="lcard" onclick="openDetail('${r.id}')">
     <div class="cphoto">
       <div class="cphoto-in"><img src="${r.photos[0]}" alt="${r.addr}" loading="lazy"/></div>
@@ -903,7 +815,6 @@ function cardHTML(r){
       <div class="photo-bl"><span class="ptag ptag-status">${r.newUnit?'空置房源':r.occGender?`有${r.occGender}生同住`:''}</span></div>
       <div class="photo-br"><span class="pcount">📷 ${r.photos.length}</span></div>
     </div>
-    <button class="fav-btn ${isFav?'on':''}" data-id="${r.id}" onclick="toggleFav(event,'${r.id}')">${isFav?'❤️':'♡'}</button>
     <div class="cbody">
       <div class="crow1">
         <div><div class="caddr">${r.addr}</div><div class="cunit">${r.unit}</div></div>
@@ -943,7 +854,6 @@ function openDetail(id){
   document.getElementById('rv-wx').classList.remove('show');
   document.getElementById('rv-ph').classList.remove('show');
   document.getElementById('script-box').style.display = 'none';
-  updateDetailFavBtn();
   goScreen('s-detail');
 }
 
@@ -1242,13 +1152,205 @@ function goScreen(id){
 }
 function showPost(){ gatePost() }
 
+
+// ══ 自动翻译（英文模式）══
+const TRANS_CACHE = {};
+
+async function translateText(text){
+  if(!text || currentLang !== 'en') return text;
+  if(TRANS_CACHE[text]) return TRANS_CACHE[text];
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:200,
+        messages:[{role:'user', content:`Translate this Chinese real estate text to English. Return ONLY the translation, no explanation, no quotes:\n${text}`}]
+      })
+    });
+    const data = await res.json();
+    const translated = data.content?.[0]?.text?.trim() || text;
+    TRANS_CACHE[text] = translated;
+    return translated;
+  } catch(e){ return text; }
+}
+
+async function translateRoom(r){
+  if(currentLang !== 'en') return r;
+  const [unit, occGender] = await Promise.all([
+    translateText(r.unit),
+    r.occGender ? translateText(r.occGender+'生同住') : Promise.resolve(''),
+  ]);
+  return { ...r, unit, occGender: occGender.replace('生同住','').replace('Female roommate','Female').replace('Male roommate','Male') };
+}
+
+async function renderCardsWithTranslation(list){
+  if(currentLang !== 'en'){ renderCards(list); return; }
+  // show loading state first
+  const g = document.getElementById('grid');
+  if(!list||!list.length){ renderCards(list); return; }
+  // render in Chinese first, then translate
+  renderCards(list);
+  // translate in background, update cards
+  const translated = await Promise.all(list.map(r => translateRoom(r)));
+  renderCards(translated);
+}
+
+// ══ I18N ══
+const I18N = {
+  zh: {
+    nav_favs:'❤️ 收藏', nav_mine:'我的发布', nav_post:'发布房源',
+    hero_eyebrow:'UIUC 留学生短租平台',
+    hero_title:'不只是找房子，<br>是找到你<em>暂时的家</em>',
+    hero_sub:'无中介 · 直接联系房东 · 宠物筛选 · 微信直联<br>让找房这件烦心事，变得像聊天一样简单',
+    hero_cta:'开始找房 →',
+    hiw_label:'三步搞定', hiw_title:'OrangeNest 怎么运作？',
+    hiw1_num:'Step 01', hiw1_title:'筛选找房', hiw1_sub:'输入租期、预算、宠物需求，系统自动匹配',
+    hiw2_num:'Step 02', hiw2_title:'查看详情', hiw2_sub:'真实照片、日历看空闲时间、地图看位置',
+    hiw3_num:'Step 03', hiw3_title:'微信直联', hiw3_sub:'直接加房东微信，无中介，谈好直接入住',
+    f_period:'租期', f_pet:'宠物', f_pet_yes:'🐾 有宠物', f_pet_no:'无宠物',
+    f_budget:'预算', f_sort:'排序', f_sort_new:'最新发布', f_sort_asc:'价格↑', f_sort_desc:'价格↓',
+    f_more:'＋ 更多筛选', f_less:'－ 收起', f_clear:'✕ 清空',
+    f_ppl:'人数', f_room:'户型', f_renew:'续租', f_renew_yes:'可续租', f_renew_no:'不续租',
+    rbar_label:'当前房源', rbar_hint:'点击查看详情 →',
+    login_title:'欢迎回来 👋', login_sub:'输入邮箱和密码直接登录，或只填邮箱发登录链接',
+    login_email_ph:'your@email.com', login_pwd_ph:'设置密码（可选，填了直接登录）',
+    login_btn:'登录 / 注册 →', login_hint:'填密码可直接登录；不填密码则发登录链接到邮箱',
+    login_sent_title:'邮件已发送！', login_sent_sub:'去查收邮件，点击链接即可登录。没收到？检查垃圾邮件箱。',
+    user_mine:'📋 我的发布', user_favs:'❤️ 我的收藏', user_signout:'退出登录',
+    empty_title:'暂无符合条件的房源', empty_sub:'试着放宽筛选条件',
+    detail_info:'房源信息', detail_cal:'租期日历', detail_loc:'位置', detail_contact:'联系房东',
+    contact_wx:'💬 查看微信号', contact_ph:'📞 查看电话',
+    script_label:'💡 联系话术模板', script_copy:'📋 复制这段话',
+    report:'举报虚假信息',
+    post_title:'发布房源', post_step1:'基本信息', post_step2:'入住条件', post_step3:'照片联系',
+    mine_title:'我的发布', favs_title:'我的收藏',
+    share_title:'分享房源', share_copy:'📋 复制文字版（发微信群）',
+  },
+  en: {
+    nav_favs:'❤️ Saved', nav_mine:'My Listings', nav_post:'Post Room',
+    hero_eyebrow:'UIUC International Student Housing',
+    hero_title:'Not just a room —<br>find your <em>home away from home</em>',
+    hero_sub:'No agents · Contact landlords directly · Pet filter · WeChat connect<br>Finding a sublet, made as easy as chatting',
+    hero_cta:'Browse Rooms →',
+    hiw_label:'How It Works', hiw_title:'3 Simple Steps',
+    hiw1_num:'Step 01', hiw1_title:'Filter', hiw1_sub:'Enter your dates, budget, and pet needs',
+    hiw2_num:'Step 02', hiw2_title:'Browse', hiw2_sub:'Real photos, calendar availability, map view',
+    hiw3_num:'Step 03', hiw3_title:'Connect', hiw3_sub:'Message the landlord directly on WeChat',
+    f_period:'Dates', f_pet:'Pets', f_pet_yes:'🐾 Have pets', f_pet_no:'No pets',
+    f_budget:'Budget', f_sort:'Sort', f_sort_new:'Newest', f_sort_asc:'Price ↑', f_sort_desc:'Price ↓',
+    f_more:'＋ More filters', f_less:'－ Less', f_clear:'✕ Clear',
+    f_ppl:'People', f_room:'Rooms', f_renew:'Renewal', f_renew_yes:'Renewable', f_renew_no:'No renewal',
+    rbar_label:'Available Now', rbar_hint:'Click to view details →',
+    login_title:'Welcome back 👋', login_sub:'Enter email + password to log in, or email only for a magic link',
+    login_email_ph:'your@email.com', login_pwd_ph:'Password (optional — skip to get a magic link)',
+    login_btn:'Log in / Sign up →', login_hint:'With password: instant login. Without: magic link sent to email.',
+    login_sent_title:'Email sent!', login_sent_sub:'Check your inbox and click the link. Not there? Check spam.',
+    user_mine:'📋 My Listings', user_favs:'❤️ Saved', user_signout:'Sign out',
+    empty_title:'No listings match', empty_sub:'Try adjusting your filters',
+    detail_info:'Listing Details', detail_cal:'Availability Calendar', detail_loc:'Location', detail_contact:'Contact Landlord',
+    contact_wx:'💬 View WeChat ID', contact_ph:'📞 View Phone',
+    script_label:'💡 Message Template', script_copy:'📋 Copy message',
+    report:'Report this listing',
+    post_title:'Post a Room', post_step1:'Basic Info', post_step2:'Conditions', post_step3:'Photos & Contact',
+    mine_title:'My Listings', favs_title:'Saved Rooms',
+    share_title:'Share Listing', share_copy:'📋 Copy text (for group chats)',
+  }
+};
+
+let currentLang = localStorage.getItem('on_lang') || 'zh';
+
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('on_lang', lang);
+  ['zh','en'].forEach(l => document.getElementById('lang-'+l)?.classList.toggle('active', l===lang));
+  applyLang();
+}
+
+function t(key){ return I18N[currentLang]?.[key] || I18N['zh'][key] || key }
+
+function applyLang(){
+  const L = I18N[currentLang];
+  // Nav
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(L[key]) el.textContent = L[key];
+  });
+  // Hero
+  const heroEye = document.querySelector('.hero-eyebrow');
+  if(heroEye) heroEye.textContent = L.hero_eyebrow;
+  const heroTitle = document.querySelector('.hero-title');
+  if(heroTitle) heroTitle.innerHTML = L.hero_title;
+  const heroSub = document.querySelector('.hero-sub');
+  if(heroSub) heroSub.innerHTML = L.hero_sub;
+  const heroCta = document.querySelector('.hero-cta');
+  if(heroCta) heroCta.textContent = L.hero_cta;
+  // HIW
+  const hiw = document.querySelector('.hiw-label');
+  if(hiw) hiw.textContent = L.hiw_label;
+  const hiwT = document.querySelector('.hiw-title');
+  if(hiwT) hiwT.textContent = L.hiw_title;
+  const steps = document.querySelectorAll('.hiw-step');
+  [[L.hiw1_num,L.hiw1_title,L.hiw1_sub],[L.hiw2_num,L.hiw2_title,L.hiw2_sub],[L.hiw3_num,L.hiw3_title,L.hiw3_sub]].forEach(([num,title,sub],i)=>{
+    if(!steps[i]) return;
+    const n=steps[i].querySelector('.hiw-num');const tt=steps[i].querySelector('.hiw-stitle');const s=steps[i].querySelector('.hiw-sub');
+    if(n)n.textContent=num;if(tt)tt.textContent=title;if(s)s.textContent=sub;
+  });
+  // Filter labels
+  const flabels = document.querySelectorAll('.flabel');
+  const labelMap = [L.f_period, L.f_pet, L.f_budget];
+  flabels.forEach((el,i)=>{ if(labelMap[i]) el.textContent=labelMap[i]; });
+  // Filter chips
+  const chips = {f_pet_yes:'🐾 有宠物', f_pet_no:'无宠物'};
+  document.querySelectorAll('[data-g="pet"]').forEach(el => {
+    if(el.dataset.v==='yes') el.textContent = L.f_pet_yes;
+    if(el.dataset.v==='no') el.textContent = L.f_pet_no;
+  });
+  document.querySelectorAll('[data-g="renew"]').forEach(el => {
+    if(el.dataset.v==='yes') el.textContent = L.f_renew_yes;
+    if(el.dataset.v==='no') el.textContent = L.f_renew_no;
+  });
+  // Sort
+  const sortLabel = document.querySelector('.sort-label');
+  if(sortLabel) sortLabel.textContent = L.f_sort;
+  const sNew=document.getElementById('sort-new');const sAsc=document.getElementById('sort-price-asc');const sDesc=document.getElementById('sort-price-desc');
+  if(sNew)sNew.textContent=L.f_sort_new;if(sAsc)sAsc.textContent=L.f_sort_asc;if(sDesc)sDesc.textContent=L.f_sort_desc;
+  // More/clear btn
+  const moreBtn=document.getElementById('more-btn');
+  if(moreBtn) moreBtn.textContent = document.getElementById('filter-more')?.classList.contains('open') ? L.f_less : L.f_more;
+  // rbar
+  const rbarLabel=document.querySelector('.rbar > div > div');
+  if(rbarLabel) rbarLabel.textContent=L.rbar_label;
+  const rbarHint=document.querySelector('.rbar-hint');
+  if(rbarHint) rbarHint.textContent=L.rbar_hint;
+  // login modal
+  const loginTitle=document.querySelector('.login-title');if(loginTitle)loginTitle.textContent=L.login_title;
+  const loginSub=document.getElementById('login-sub');if(loginSub)loginSub.innerHTML=L.login_sub;
+  const loginEmail=document.getElementById('login-email');if(loginEmail)loginEmail.placeholder=L.login_email_ph;
+  const loginPwd=document.getElementById('login-pwd');if(loginPwd)loginPwd.placeholder=L.login_pwd_ph;
+  const loginBtn=document.querySelector('.login-btn');if(loginBtn)loginBtn.textContent=L.login_btn;
+  const loginHint=document.querySelector('.login-hint');if(loginHint)loginHint.textContent=L.login_hint;
+  // share modal
+  const shareTitle=document.querySelector('#share-modal .modal-title');if(shareTitle)shareTitle.textContent=L.share_title;
+  const shareCopy=document.querySelector('#share-modal .mbtn');if(shareCopy)shareCopy.textContent=L.share_copy;
+  // screen titles
+  const mineTitle=document.querySelector('#s-mine .nav-logo-en');if(mineTitle)mineTitle.textContent=L.mine_title;
+  const favsTitle=document.querySelector('#s-favs .nav-logo-en');if(favsTitle)favsTitle.textContent=L.favs_title;
+  // user menu
+  const umMine=document.querySelector('.user-menu-item:nth-child(2)');if(umMine)umMine.textContent=L.user_mine;
+  const umOut=document.querySelector('.user-menu-item.danger');if(umOut)umOut.textContent=L.user_signout;
+}
+
 // ══ INIT ══
 loadListings();
 sb.auth.getSession().then(({ data:{ session } }) => {
   currentUser = session?.user || null;
   renderNavAuth();
-  if(currentUser) loadFavIds();
 });
+
+// 应用语言
+setLang(currentLang);
 </script>
 </body>
 </html>
