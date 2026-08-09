@@ -173,10 +173,12 @@ img{display:block}
 .cal-wds{display:grid;grid-template-columns:repeat(7,1fr);padding:6px 18px 2px}
 .cal-wd{font-size:10px;color:var(--ink3);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:2px 18px 12px;gap:2px}
-.cal-day{font-size:11px;text-align:center;padding:5px 2px;border-radius:5px;color:var(--ink3);font-weight:500}
+.cal-day{font-size:11px;text-align:center;padding:5px 2px 8px;border-radius:6px;color:var(--ink3);font-weight:500;position:relative}
 .cal-day.occ{background:#FEE2E2;color:var(--red);font-weight:700}
 .cal-day.avail{background:#CCFBF1;color:var(--teal);font-weight:700}
-.cal-day.today{outline:2px solid var(--orange);outline-offset:-2px}
+.cal-day.today{position:relative;font-weight:700;color:var(--orange)}.cal-day.today::after{content:'·';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--orange);line-height:1}
+.cal-day.sel{box-shadow:inset 0 0 0 2px var(--orange);border-radius:6px;font-weight:700}
+.cal-day.avail.sel{background:#CCFBF1;color:var(--teal);box-shadow:inset 0 0 0 2px var(--orange);font-weight:700}
 .cal-legend{display:flex;gap:12px;padding:10px 18px;border-top:1px solid var(--cream2);flex-wrap:wrap;background:var(--cream)}
 .cal-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2);font-weight:500}
 .leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
@@ -428,7 +430,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 <!-- ══ DETAIL SCREEN ══ -->
 <div class="screen" id="s-detail">
   <nav class="dnav">
-    <button class="btn-back" onclick="goScreen('s-list')">← 返回</button>
+    <button class="btn-back" id="detail-back-btn" onclick="goScreen('s-list')">← 返回</button>
     <span class="dnav-title" id="d-title"></span>
     <div class="dnav-actions">
       <button class="nav-btn nav-btn-outline" style="padding:6px 12px;font-size:12px" onclick="openShareDetail()">📤 分享</button>
@@ -501,8 +503,8 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 <!-- ══ POST SCREEN ══ -->
 <div class="screen" id="s-post">
   <nav class="nav">
-    <button class="btn-back" onclick="goScreen('s-list')">← 返回</button>
-    <div class="nav-logo"><span class="nav-logo-en" style="font-size:17px">发布房源</span></div>
+    <button class="btn-back" id="post-back-btn" onclick="goScreen('s-list')">← 返回</button>
+    <div class="nav-logo"><span class="nav-logo-en" id="post-nav-title" style="font-size:17px">发布房源</span></div>
     <div style="width:80px"></div>
   </nav>
   <div class="fwrap">
@@ -513,58 +515,58 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
     </div>
     <div class="fp active" id="fp1">
       <div class="fcard">
-        <div class="ff"><label class="flabel2">公寓地址 <span class="req">*</span></label><input class="fi" id="f-addr" type="text" placeholder="如：706 S Mathews Ave, Urbana, IL 61801"/></div>
-        <div class="ff"><label class="flabel2">房型描述 <span class="req">*</span></label><input class="fi" id="f-unit" type="text" placeholder="如：1室1卫 · 独立卫浴 · 全家具"/></div>
+        <div class="ff"><label class="flabel2" id="lbl-addr">公寓地址 <span class="req">*</span></label><input class="fi" id="f-addr" type="text" placeholder="如：706 S Mathews Ave, Urbana, IL 61801"/></div>
+        <div class="ff"><label class="flabel2" id="lbl-unit">房型描述 <span class="req">*</span></label><input class="fi" id="f-unit" type="text" placeholder="如：1室1卫 · 独立卫浴 · 全家具"/></div>
         <div class="fr2">
-          <div class="ff"><label class="flabel2">卧室 <span class="req">*</span></label><select class="fi" id="f-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧+</option></select></div>
-          <div class="ff"><label class="flabel2">卫生间 <span class="req">*</span></label><select class="fi" id="f-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
+          <div class="ff"><label class="flabel2" id="lbl-bed">卧室 <span class="req">*</span></label><select class="fi" id="f-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧+</option></select></div>
+          <div class="ff"><label class="flabel2" id="lbl-bath">卫生间 <span class="req">*</span></label><select class="fi" id="f-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
         </div>
         <div class="fr2">
-          <div class="ff"><label class="flabel2">可入住 <span class="req">*</span></label><input class="fi" id="f-avail-from" type="date"/></div>
-          <div class="ff"><label class="flabel2">到期日期 <span class="req">*</span></label><input class="fi" id="f-avail-to" type="date"/></div>
+          <div class="ff"><label class="flabel2" id="lbl-avail-from">可入住 <span class="req">*</span></label><input class="fi" id="f-avail-from" type="date"/></div>
+          <div class="ff"><label class="flabel2" id="lbl-avail-to">到期日期 <span class="req">*</span></label><input class="fi" id="f-avail-to" type="date"/></div>
         </div>
-        <div class="ff"><label class="flabel2">月租金（$）<span class="req">*</span></label><input class="fi" id="f-price" type="number" placeholder="850"/><span class="fhint">填实际转租价格</span></div>
+        <div class="ff"><label class="flabel2" id="lbl-price">月租金（$）<span class="req">*</span></label><input class="fi" id="f-price" type="number" placeholder="850"/><span class="fhint" id="hint-price">填实际转租价格</span></div>
       </div>
-      <div class="fbrow"><button class="fbnext" onclick="nextStep1()">下一步：入住条件 →</button></div>
+      <div class="fbrow"><button class="fbnext" id="btn-next1" onclick="nextStep1()">下一步：入住条件 →</button></div>
     </div>
     <div class="fp" id="fp2">
       <div class="fcard">
-        <div class="ff"><label class="flabel2">宠物 <span class="req">*</span></label><div class="tgrp"><button class="topt" id="pt-cat" onclick="pt('pet','cat')">允许猫咪</button><button class="topt" id="pt-dog" onclick="pt('pet','dog')">允许狗狗</button><button class="topt" id="pt-both" onclick="pt('pet','both')">猫狗都行</button><button class="topt" id="pt-no" onclick="pt('pet','no')">不允许</button></div></div>
-        <div class="ff"><label class="flabel2">房间现状 <span class="req">*</span></label><div class="tgrp"><button class="topt" id="pt-empty" onclick="pt('occ','empty')">空置</button><button class="topt" id="pt-female" onclick="pt('occ','female')">有女生同住</button><button class="topt" id="pt-male" onclick="pt('occ','male')">有男生同住</button></div></div>
-        <div class="ff"><label class="flabel2">租期</label><div class="tgrp"><button class="topt" id="pt-flex-y" onclick="pt('flex','yes')">可以商量</button><button class="topt" id="pt-flex-n" onclick="pt('flex','no')">固定</button></div></div>
-        <div class="ff"><label class="flabel2">续租</label><div class="tgrp"><button class="topt" id="pt-renew-y" onclick="pt('renew','yes')">可续租</button><button class="topt" id="pt-renew-n" onclick="pt('renew','no')">不续租</button></div></div>
-        <div class="ff"><label class="flabel2">最多入住人数</label><select class="fi" id="f-maxppl"><option value="1">1人</option><option value="2">2人</option><option value="3">3人</option><option value="4">4人+</option></select></div>
-        <div class="ff"><label class="flabel2">其他说明（选填）</label><textarea class="fi" id="f-note" placeholder="如：女生优先 · 含水电网 · 有停车位"></textarea></div>
+        <div class="ff"><label class="flabel2" id="lbl-pet">宠物 <span class="req">*</span></label><div class="tgrp"><button class="topt" id="pt-cat" onclick="pt('pet','cat')">允许猫咪</button><button class="topt" id="pt-dog" onclick="pt('pet','dog')">允许狗狗</button><button class="topt" id="pt-both" onclick="pt('pet','both')">猫狗都行</button><button class="topt" id="pt-no" onclick="pt('pet','no')">不允许</button></div></div>
+        <div class="ff"><label class="flabel2" id="lbl-occ">房间现状 <span class="req">*</span></label><div class="tgrp"><button class="topt" id="pt-empty" onclick="pt('occ','empty')">空置</button><button class="topt" id="pt-female" onclick="pt('occ','female')">有女生同住</button><button class="topt" id="pt-male" onclick="pt('occ','male')">有男生同住</button></div></div>
+        <div class="ff"><label class="flabel2" id="lbl-flex">租期</label><div class="tgrp"><button class="topt" id="pt-flex-y" onclick="pt('flex','yes')">可以商量</button><button class="topt" id="pt-flex-n" onclick="pt('flex','no')">固定</button></div></div>
+        <div class="ff"><label class="flabel2" id="lbl-renew">续租</label><div class="tgrp"><button class="topt" id="pt-renew-y" onclick="pt('renew','yes')">可续租</button><button class="topt" id="pt-renew-n" onclick="pt('renew','no')">不续租</button></div></div>
+        <div class="ff"><label class="flabel2" id="lbl-maxppl">最多入住人数</label><select class="fi" id="f-maxppl"><option value="1">1人</option><option value="2">2人</option><option value="3">3人</option><option value="4">4人+</option></select></div>
+        <div class="ff"><label class="flabel2" id="lbl-note">其他说明（选填）</label><textarea class="fi" id="f-note" placeholder="如：女生优先 · 含水电网 · 有停车位"></textarea></div>
       </div>
-      <div class="fbrow"><button class="fbback" onclick="goStep(1)">← 返回</button><button class="fbnext" onclick="goStep(3)">下一步：照片联系 →</button></div>
+      <div class="fbrow"><button class="fbback" id="btn-back2" onclick="goStep(1)">← 返回</button><button class="fbnext" id="btn-next2" onclick="goStep(3)">下一步：照片联系 →</button></div>
     </div>
     <div class="fp" id="fp3">
       <div class="fcard">
         <div class="ff">
-          <label class="flabel2">上传照片 <span class="req">*</span></label>
+          <label class="flabel2" id="lbl-photos">上传照片 <span class="req">*</span></label>
           <div class="upload-zone" onclick="document.getElementById('photo-input').click()">
             <div style="font-size:32px;margin-bottom:8px">📷</div>
             <div style="font-size:13px;font-weight:600;color:var(--ink2)">点击选择照片</div>
-            <div class="fhint" style="margin-top:4px">建议 3–6 张 · JPG/PNG</div>
+            <div class="fhint" id="hint-photos" style="margin-top:4px">建议 3–6 张 · JPG/PNG</div>
           </div>
           <input type="file" id="photo-input" multiple accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewPhotos(this)"/>
           <div id="photo-preview" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px"></div>
         </div>
-        <div class="ff"><label class="flabel2">微信号 <span class="req">*</span></label><input class="fi" id="f-wechat" type="text" placeholder="你的微信号"/><span class="fhint">租客点「查看微信号」才能看到</span></div>
-        <div class="ff"><label class="flabel2">电话（选填）</label><input class="fi" id="f-phone" type="text" placeholder="如：217-555-0101"/></div>
+        <div class="ff"><label class="flabel2" id="lbl-wechat">微信号 <span class="req">*</span></label><input class="fi" id="f-wechat" type="text" placeholder="你的微信号"/><span class="fhint" id="hint-wechat">租客点「查看微信号」才能看到</span></div>
+        <div class="ff"><label class="flabel2" id="lbl-phone">电话（选填）</label><input class="fi" id="f-phone" type="text" placeholder="如：217-555-0101"/></div>
       </div>
       <div id="upload-progress" style="display:none;padding:0 0 10px">
         <div style="font-size:12px;color:var(--ink3);margin-bottom:5px" id="upload-status">上传中…</div>
         <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
       </div>
-      <div class="fbrow"><button class="fbback" onclick="goStep(2)">← 返回</button><button class="fbnext" id="submit-btn" onclick="submitListing()">发布房源 🎉</button></div>
+      <div class="fbrow"><button class="fbback" id="btn-back3" onclick="goStep(2)">← 返回</button><button class="fbnext" id="submit-btn" onclick="submitListing()" id="btn-submit">发布房源 🎉</button></div>
     </div>
     <div class="fp" id="fp4">
       <div class="success-wrap">
         <div style="font-size:52px;margin-bottom:16px">🎉</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--ink);margin-bottom:8px">房源已发布！</div>
-        <div style="font-size:13px;color:var(--ink3);line-height:1.8;margin-bottom:24px">有人感兴趣时会直接加你微信。<br>建议在留学生群转发，更快找到租客。</div>
-        <button class="nav-btn nav-btn-fill" style="padding:11px 28px;font-size:14px;border-radius:30px" onclick="goScreen('s-list');loadListings()">回到首页</button>
+        <div id="success-title" style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--ink);margin-bottom:8px">房源已发布！</div>
+        <div id="success-sub" style="font-size:13px;color:var(--ink3);line-height:1.8;margin-bottom:24px">有人感兴趣时会直接加你微信。<br>建议在留学生群转发，更快找到租客。</div>
+        <button class="nav-btn nav-btn-fill" style="padding:11px 28px;font-size:14px;border-radius:30px" onclick="goScreen('s-list');loadListings()" id="btn-home">回到首页</button>
       </div>
     </div>
   </div>
@@ -573,8 +575,8 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 <!-- ══ MY LISTINGS ══ -->
 <div class="screen" id="s-mine">
   <nav class="nav">
-    <button class="btn-back" onclick="goScreen('s-list')">← 返回</button>
-    <div class="nav-logo"><span class="nav-logo-en" style="font-size:17px">我的发布</span></div>
+    <button class="btn-back" id="mine-back-btn" onclick="goScreen('s-list')">← 返回</button>
+    <div class="nav-logo"><span class="nav-logo-en" id="mine-nav-title" style="font-size:17px">我的发布</span></div>
     <div style="width:80px"></div>
   </nav>
   <div style="max-width:600px;margin:0 auto;padding:24px 20px">
@@ -718,7 +720,7 @@ function openLogin(){ document.getElementById('login-modal').classList.add('open
 function closeLogin(){ document.getElementById('login-modal').classList.remove('open');document.getElementById('login-form').style.display='block';document.getElementById('login-sent').style.display='none';document.getElementById('login-email').value='' }
 
 function gatePost(){
-  if(!currentUser){ openLogin(); showToast('发布房源需要先登录'); return; }
+  if(!currentUser){ openLogin(); showToast(t('toast_login')); return; }
   goStep(1); goScreen('s-post');
 }
 
@@ -796,6 +798,14 @@ function doFilter(){
 function timeAgo(date){
   const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff/60000);
+  if(currentLang==='en'){
+    if(mins<60) return `${mins||1}m ago`;
+    const hrs = Math.floor(mins/60);
+    if(hrs<24) return `${hrs}h ago`;
+    const days = Math.floor(hrs/24);
+    if(days<30) return `${days}d ago`;
+    return `${Math.floor(days/30)}mo ago`;
+  }
   if(mins<60) return `${mins||1}分钟前`;
   const hrs = Math.floor(mins/60);
   if(hrs<24) return `${hrs}小时前`;
@@ -803,29 +813,44 @@ function timeAgo(date){
   if(days<30) return `${days}天前`;
   return `${Math.floor(days/30)}个月前`;
 }
-function fmtD(d){ if(!d) return'—'; return`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日` }
-function fmtS(d){ if(!d) return'—'; return`${d.getMonth()+1}月${d.getDate()}日` }
+function fmtD(d){
+  if(!d) return '—';
+  if(currentLang==='en'){
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+function fmtS(d){
+  if(!d) return '—';
+  if(currentLang==='en'){
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[d.getMonth()]} ${d.getDate()}`;
+  }
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
 
 // ══ CARDS ══
 function cardHTML(r){
   return `<div class="lcard" onclick="openDetail('${r.id}')">
     <div class="cphoto">
       <div class="cphoto-in"><img src="${r.photos[0]}" alt="${r.addr}" loading="lazy"/></div>
-      <div class="photo-tl">${r.urgent?'<span class="ptag ptag-urgent">⚡ 即时入住</span>':''}</div>
-      <div class="photo-bl"><span class="ptag ptag-status">${r.newUnit?'空置房源':r.occGender?`有${r.occGender}生同住`:''}</span></div>
+      <div class="photo-tl">${r.urgent?`<span class="ptag ptag-urgent">${t('card_urgent')}</span>`:''}</div>
+      <div class="photo-tr"><span class="ptag ${r.pet?'ptag-pet':'ptag-nopet'}">${r.pet?t('card_pet'):(currentLang==='en'?'🚫 No pets':'🚫 不可带宠物')}</span></div>
+      <div class="photo-bl"><span class="ptag ptag-status">${r.newUnit?t('card_vacant'):r.occGender?(currentLang==='en'?(r.occGender==='女'?'Female roommate':'Male roommate'):`有${r.occGender}生同住`):''}</span></div>
       <div class="photo-br"><span class="pcount">📷 ${r.photos.length}</span></div>
     </div>
     <div class="cbody">
       <div class="crow1">
         <div><div class="caddr">${r.addr}</div><div class="cunit">${r.unit}</div></div>
-        <div class="cprice">$${r.price}<span>/月</span></div>
+        <div class="cprice">$${r.price}<span>${currentLang==='en'?'/mo':'/月'}</span></div>
       </div>
       <div class="ctags">
         <span class="ctag ctag-gray">📅 ${r.availFrom?fmtS(r.availFrom):'?'} → ${r.availTo?fmtS(r.availTo):'?'}</span>
         <span class="ctag ctag-gray">🛏 ${r.bed} 🚿 ${r.bath}</span>
-        ${r.pet?'<span class="ctag ctag-teal">🐾 宠物友好</span>':''}
-        ${r.flexible?'<span class="ctag ctag-orange">租期可商量</span>':''}
-        ${r.renew?'<span class="ctag ctag-teal">可续租</span>':''}
+        ${r.pet?`<span class="ctag ctag-teal">${t('card_pet')}</span>`:''}
+        ${r.flexible?`<span class="ctag ctag-orange">${t('card_flex')}</span>`:''}
+        ${r.renew?`<span class="ctag ctag-teal">${t('card_renew')}</span>`:''}
       </div>
       <div class="ctime">${timeAgo(r.createdAt)}</div>
     </div>
@@ -835,7 +860,7 @@ function cardHTML(r){
 function renderCards(list){
   const g = document.getElementById('grid');
   if(!list||!list.length){
-    g.innerHTML = '<div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-title">暂无符合条件的房源</div><div class="empty-sub">试着放宽筛选条件，或者<br><button onclick="showPost()" style="color:var(--orange);background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif">成为第一个发布的人</button></div></div>';
+    g.innerHTML = `<div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-title">${t("empty_title")}</div><div class="empty-sub">${t("empty_sub")}<br><button onclick="showPost()" style="color:var(--orange);background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif">${currentLang==='en'?'Be the first to post!':' 成为第一个发布的人'}</button></div></div>`;
     return;
   }
   g.innerHTML = list.map(r => cardHTML(r)).join('');
@@ -877,13 +902,20 @@ function goSlide(i){
 
 function buildInfo(){
   const r = cur;
+  const bedBath = currentLang==='en'?`${r.bed} bed / ${r.bath} bath`:`${r.bed}卧${r.bath}卫`;
+  const occStatus = r.newUnit?t('info_vacant'):r.occGender?(currentLang==='en'?(r.occGender==='女'?'Female roommate':'Male roommate'):`有${r.occGender}生同住`):'—';
   document.getElementById('d-info').innerHTML = [
-    ['地址',r.addrFull],['户型',`${r.bed}卧${r.bath}卫`],
-    ['月租金',`$${r.price}`],['可入住',fmtD(r.availFrom)],
-    ['到期日期',fmtD(r.availTo)],['宠物',r.pet?'✅ 宠物友好':'❌ 不可带宠物'],
-    ['租期',r.flexible?'可商量':'固定'],['续租',r.renew?'可续租':'不续租'],
-    ['房间状态',r.newUnit?'空置全新':r.occGender?`有${r.occGender}生同住`:'—'],
-    ['最多入住',`${r.maxPpl}人`],['发布时间',timeAgo(r.createdAt)]
+    [currentLang==='en'?'Address':'地址', r.addrFull],
+    [currentLang==='en'?'Layout':'户型', bedBath],
+    [t('info_price'), `$${r.price}`],
+    [t('info_avail_from'), fmtD(r.availFrom)],
+    [t('info_avail_to'), fmtD(r.availTo)],
+    [currentLang==='en'?'Pets':'宠物', r.pet?t('info_pet_yes'):t('info_pet_no')],
+    [currentLang==='en'?'Lease':'租期', r.flexible?t('info_flex_yes'):t('info_flex_no')],
+    [currentLang==='en'?'Renewal':'续租', r.renew?t('info_renew_yes'):t('info_renew_no')],
+    [currentLang==='en'?'Room Status':'房间状态', occStatus],
+    [currentLang==='en'?'Max Occupants':'最多入住', currentLang==='en'?`${r.maxPpl} person${r.maxPpl>1?'s':''}`:`${r.maxPpl}人`],
+    [t('info_posted'), timeAgo(r.createdAt)]
   ].map(([l,v])=>`<div class="icell"><div class="iclabel">${l}</div><div class="icval">${v}</div></div>`).join('');
 }
 
@@ -897,6 +929,11 @@ function renderCal(){
   document.getElementById('cal-next').disabled=new Date(calY,calM,1)>=new Date(maxD.getFullYear(),maxD.getMonth(),1);
   let h='';
   for(let i=0;i<fd;i++) h+=`<div class="cal-day"></div>`;
+  const fF=document.getElementById('f-from').value;
+  const fT=document.getElementById('f-to').value;
+  const selFrom=fF?new Date(fF+'T00:00:00'):null;
+  const selTo=fT?new Date(fT+'T00:00:00'):null;
+
   for(let d=1;d<=dim;d++){
     const date=new Date(calY,calM,d);
     const isToday=date.toDateString()===TODAY.toDateString();
@@ -904,14 +941,39 @@ function renderCal(){
     if(isToday) cls+=' today';
     if(r.occFrom&&r.occTo&&date>=r.occFrom&&date<=r.occTo) cls+=' occ';
     else if(r.availFrom&&r.availTo&&date>=r.availFrom&&date<=r.availTo) cls+=' avail';
-    h+=`<div class="${cls}">${d}</div>`;
+    if(selFrom&&selTo&&date>=selFrom&&date<=selTo) cls+=' sel';
+    else if(selFrom&&!selTo&&date.toDateString()===selFrom.toDateString()) cls+=' sel';
+    const dateStr=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    h+=`<div class="${cls}" onclick="calPickDate('${dateStr}')" style="cursor:pointer">${d}</div>`;
   }
   document.getElementById('cal-grid').innerHTML=h;
   const leg=[];
-  if(r.occFrom) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:#FEE2E2;border:1px solid #FCA5A5"></div>已有${r.occGender||''}生入住</div>`);
-  if(r.availFrom) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:#CCFBF1;border:1px solid #5EEAD4"></div>空闲可租</div>`);
-  leg.push(`<div class="cal-leg"><div class="leg-sq" style="outline:2px solid var(--orange);outline-offset:-1px;border-radius:2px"></div>今天</div>`);
-  document.getElementById('cal-legend').innerHTML=leg.join('');
+  if(r.occFrom) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:#FEE2E2;border:1px solid #FCA5A5"></div>${currentLang==='en'?'Occupied':'已有'}${r.occGender||''}${currentLang==='en'?'':'生入住'}</div>`);
+  if(r.availFrom) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:#CCFBF1;border:1px solid #5EEAD4"></div>${currentLang==='en'?'Available':'空闲可租'}</div>`);
+  if(selFrom||selTo) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:var(--orange-mid);border:1px solid var(--orange)"></div>${currentLang==='en'?'Your dates':'你选择的日期'}</div>`);
+  leg.push(`<div class="cal-leg"><div class="leg-sq" style="outline:2px solid var(--orange);outline-offset:-1px;border-radius:2px"></div>${currentLang==='en'?'Today':'今天'}</div>`);
+  document.getElementById('cal-grid').style.cursor='pointer';
+  document.getElementById('cal-legend').innerHTML=leg.join('') + `<div style="font-size:10px;color:var(--ink3);width:100%;margin-top:4px">${currentLang==='en'?'💡 Click dates to set your move-in period':'💡 点击日期可设置你的入住时间段'}</div>`;
+}
+
+function calPickDate(dateStr){
+  const fF = document.getElementById('f-from').value;
+  const fT = document.getElementById('f-to').value;
+  if(!fF || (fF && fT)){
+    // start fresh: set from date
+    document.getElementById('f-from').value = dateStr;
+    document.getElementById('f-to').value = '';
+  } else {
+    // from is set, now set to (ensure from <= to)
+    if(dateStr < fF){
+      document.getElementById('f-to').value = fF;
+      document.getElementById('f-from').value = dateStr;
+    } else {
+      document.getElementById('f-to').value = dateStr;
+    }
+    doFilter();
+  }
+  renderCal();
 }
 
 function buildMap(){
@@ -925,12 +987,17 @@ function doReveal(type){
   if(type==='wx'){
     document.getElementById('rv-wx-val').textContent=cur.wechat;
     document.getElementById('rv-wx').classList.add('show');
+    document.querySelector('#rv-wx .rlabel').textContent=t('contact_wx_label');
+    document.querySelector('#rv-wx .rhint').textContent=t('contact_wx_hint');
     // 显示话术
-    const script=`你好！我在 OrangeNest 上看到你发布的房源（${cur.addr}），想租 ${cur.availFrom?fmtS(cur.availFrom):''}${cur.availTo?' 到 '+fmtS(cur.availTo):''}，请问还有空吗？${cur.pet?'我有宠物，你的帖子上写宠物友好，请问具体是什么宠物都可以吗？':''} 期待你的回复！`;
+    const script = currentLang==='en'
+    ? `Hi! I found your listing on OrangeNest (${cur.addr}) and I'm interested in renting from ${cur.availFrom?fmtS(cur.availFrom):''}${cur.availTo?' to '+fmtS(cur.availTo):''}.${cur.pet?' I have a pet — your listing says pet friendly, could you tell me more?':''} Looking forward to hearing from you!`
+    : `你好！我在 OrangeNest 上看到你发布的房源（${cur.addr}），想租 ${cur.availFrom?fmtS(cur.availFrom):''}${cur.availTo?' 到 '+fmtS(cur.availTo):''}，请问还有空吗？${cur.pet?'我有宠物，你的帖子上写宠物友好，请问具体是什么宠物都可以吗？':''} 期待你的回复！`;
     document.getElementById('script-text').textContent=script;
     document.getElementById('script-box').style.display='block';
   } else {
-    document.getElementById('rv-ph-val').textContent=cur.phone||'房东未留电话，请用微信联系';
+    document.getElementById('rv-ph-val').textContent=cur.phone||t('contact_nophone');
+    document.querySelector('#rv-ph .rlabel').textContent=t('contact_ph_label');
     document.getElementById('rv-ph').classList.add('show');
   }
 }
@@ -953,15 +1020,15 @@ function openShareDetail(){ shareRoom=cur; _openShare() }
 function openShareFromMine(r){ shareRoom=r; _openShare() }
 function _openShare(){
   const r=shareRoom;
-  document.getElementById('sc-price').textContent=`$${r.price}/月`;
+  document.getElementById('sc-price').textContent=`$${r.price}${currentLang==='en'?'/mo':'/月'}`;
   document.getElementById('sc-addr').textContent=r.addrFull||r.addr;
   document.getElementById('sc-details').innerHTML=[
-    ['户型',`${r.bed}卧${r.bath}卫`],
-    ['宠物',r.pet?'🐾 友好':'不可带宠物'],
-    ['可入住',r.availFrom?fmtS(r.availFrom instanceof Date?r.availFrom:new Date(r.availFrom)):'—'],
-    ['到期',r.availTo?fmtS(r.availTo instanceof Date?r.availTo:new Date(r.availTo)):'—'],
-    ['租期',r.flexible?'可商量':'固定'],
-    ['微信',r.wechat||'—'],
+    [currentLang==='en'?'Layout':'户型', currentLang==='en'?`${r.bed} bed/${r.bath} bath`:`${r.bed}卧${r.bath}卫`],
+    [currentLang==='en'?'Pets':'宠物', r.pet?(currentLang==='en'?'🐾 Friendly':'🐾 友好'):(currentLang==='en'?'No pets':'不可带宠物')],
+    [currentLang==='en'?'Available':'可入住', r.availFrom?fmtS(r.availFrom instanceof Date?r.availFrom:new Date(r.availFrom)):'—'],
+    [currentLang==='en'?'Until':'到期', r.availTo?fmtS(r.availTo instanceof Date?r.availTo:new Date(r.availTo)):'—'],
+    [currentLang==='en'?'Lease':'租期', r.flexible?(currentLang==='en'?'Flexible':'可商量'):(currentLang==='en'?'Fixed':'固定')],
+    [currentLang==='en'?'WeChat':'微信', r.wechat||'—'],
   ].map(([l,v])=>`<div><div class="sc-cell-label">${l}</div><div class="sc-cell-val">${v}</div></div>`).join('');
   document.getElementById('share-modal').classList.add('open');
 }
@@ -971,7 +1038,9 @@ function copyShareText(){
   const r=shareRoom;
   const aF=r.availFrom?fmtS(r.availFrom instanceof Date?r.availFrom:new Date(r.availFrom)):'—';
   const aT=r.availTo?fmtS(r.availTo instanceof Date?r.availTo:new Date(r.availTo)):'—';
-  const txt=`🏠【转租】${r.addrFull||r.addr}\n💰 $${r.price}/月\n🛏 ${r.bed}卧${r.bath}卫 · ${r.unit||''}\n📅 ${aF} → ${aT}\n${r.pet?'🐾 宠物友好':'🚫 不可带宠物'} · ${r.flexible?'租期可商量':'固定租期'}\n📲 微信：${r.wechat||'—'}\n\n来自 OrangeNest 橙舍\norangenest.vercel.app`;
+  const txt = currentLang==='en'
+    ? `🏠[Sublet] ${r.addrFull||r.addr}\n💰 $${r.price}/month\n🛏 ${r.bed} bed/${r.bath} bath · ${r.unit||''}\n📅 ${aF} → ${aT}\n${r.pet?'🐾 Pet friendly':'🚫 No pets'} · ${r.flexible?'Flexible lease':'Fixed lease'}\n📲 WeChat: ${r.wechat||'—'}\n\nvia OrangeNest\norangenest.vercel.app`
+    : `🏠【转租】${r.addrFull||r.addr}\n💰 $${r.price}/月\n🛏 ${r.bed}卧${r.bath}卫 · ${r.unit||''}\n📅 ${aF} → ${aT}\n${r.pet?'🐾 宠物友好':'🚫 不可带宠物'} · ${r.flexible?'租期可商量':'固定租期'}\n📲 微信：${r.wechat||'—'}\n\n来自 OrangeNest 橙舍\norangenest.vercel.app`;
   navigator.clipboard.writeText(txt).then(()=>{
     const t=document.getElementById('copy-toast');t.style.display='block';
     setTimeout(()=>t.style.display='none',2000);
@@ -990,7 +1059,7 @@ async function showMyListings(){
 
 function renderMyListings(list){
   if(!list.length){
-    document.getElementById('mine-list').innerHTML=`<div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-title">还没有发布</div><div class="empty-sub" style="margin-bottom:16px">发布你的房源，让同学找到你</div><button class="nav-btn nav-btn-fill" style="padding:11px 24px;font-size:14px;border-radius:30px" onclick="gatePost()">发布房源</button></div>`;
+    document.getElementById('mine-list').innerHTML=`<div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-title">${t("mine_empty_title")}</div><div class="empty-sub" style="margin-bottom:16px">${t("mine_empty_sub")}</div><button class="nav-btn nav-btn-fill" style="padding:11px 24px;font-size:14px;border-radius:30px" onclick="gatePost()">${t("mine_post_btn")}</button></div>`;
     return;
   }
   document.getElementById('mine-list').innerHTML=list.map(r=>`
@@ -1001,13 +1070,13 @@ function renderMyListings(list){
           <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--orange);white-space:nowrap">$${r.price}<span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;color:var(--ink3)">/月</span></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px">
-          <div style="background:var(--cream);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">可入住</div><div style="font-size:11px;font-weight:600;color:var(--ink)">${r.availFrom?fmtS(r.availFrom):'—'} → ${r.availTo?fmtS(r.availTo):'—'}</div></div>
-          <div style="background:var(--cream);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">户型</div><div style="font-size:11px;font-weight:600;color:var(--ink)">${r.bed}卧${r.bath}卫</div></div>
+          <div style="background:var(--cream);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${t("info_avail_from")}</div><div style="font-size:11px;font-weight:600;color:var(--ink)">${r.availFrom?fmtS(r.availFrom):'—'} → ${r.availTo?fmtS(r.availTo):'—'}</div></div>
+          <div style="background:var(--cream);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${currentLang==="en"?"Layout":"户型"}</div><div style="font-size:11px;font-weight:600;color:var(--ink)">${currentLang==="en"?`${r.bed} bed / ${r.bath} bath`:`${r.bed}卧${r.bath}卫`}</div></div>
         </div>
         <div style="display:flex;gap:7px;align-items:center">
           <span style="font-size:11px;color:var(--ink3);flex:1">${timeAgo(r.createdAt)}</span>
           <button onclick='openShareFromMine(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="font-size:12px;padding:7px 14px;border-radius:30px;border:2px solid var(--orange);color:var(--orange);background:var(--orange-light);cursor:pointer;font-weight:700;font-family:'DM Sans',sans-serif">📤 分享</button>
-          <button onclick="delListing('${r.id}')" style="font-size:12px;padding:7px 12px;border-radius:30px;border:1.5px solid var(--cream3);color:var(--ink3);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">下架</button>
+          <button onclick="delListing('${r.id}')" style="font-size:12px;padding:7px 12px;border-radius:30px;border:1.5px solid var(--cream3);color:var(--ink3);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">${t("mine_unpublish")}</button>
         </div>
       </div>
     </div>`).join('');
@@ -1016,8 +1085,8 @@ function renderMyListings(list){
 async function delListing(id){
   if(!confirm('确认下架这条房源？')) return;
   const { error } = await sb.from('listings').update({status:'inactive'}).eq('id',id).eq('owner_id',currentUser.id);
-  if(error){ showToast('下架失败，请重试'); return; }
-  showToast('✅ 已下架');
+  if(error){ showToast(t('toast_unpublish_fail')); return; }
+  showToast(t('toast_unpublished'));
   showMyListings();
 }
 
@@ -1227,14 +1296,59 @@ const I18N = {
     post_title:'发布房源', post_step1:'基本信息', post_step2:'入住条件', post_step3:'照片联系',
     mine_title:'我的发布', favs_title:'我的收藏',
     share_title:'分享房源', share_copy:'📋 复制文字版（发微信群）',
-    budget1:'Under $500', budget2:'$500–800', budget3:'$800–1100', budget4:'$1100+',
-    ppl1:'1 person', ppl2:'2 people', ppl3:'3+ people',
-    bed1:'1 bed', bed2:'2 beds', bed3:'3+ beds',
-    bath1:'1 bath', bath2:'2+ baths',
-    nav_login:'Sign in', nav_signout:'Sign out',
-    f_collapse:'－ Less',
-    pill1:'🏠 Personal Sublet', pill2:'💬 WeChat Direct', pill3:'📅 Flexible Lease', pill4:'🐾 Pet Filter', pill5:'⚡ Move-in Ready',
-    filter_more_ppl:'People', filter_more_bed:'Bedrooms',
+    back:'← 返回',
+    post_nav_title:'发布房源',
+    mine_nav_title:'我的发布',
+    lbl_addr:'公寓地址 *', lbl_unit:'房型描述 *', lbl_bed:'卧室 *', lbl_bath:'卫生间 *',
+    lbl_avail_from:'可入住 *', lbl_avail_to:'到期日期 *',
+    lbl_price:'月租金（$）*', hint_price:'填实际转租价格',
+    btn_next1:'下一步：入住条件 →',
+    lbl_pet:'宠物 *', lbl_occ:'房间现状 *', lbl_flex:'租期', lbl_renew:'续租',
+    lbl_maxppl:'最多入住人数', lbl_note:'其他说明（选填）',
+    btn_back2:'← 返回', btn_next2:'下一步：照片联系 →',
+    lbl_photos:'上传照片 *', hint_photos:'建议 3–6 张 · JPG/PNG',
+    lbl_wechat:'微信号 *', hint_wechat:'租客点「查看微信号」才能看到',
+    lbl_phone:'电话（选填）',
+    btn_back3:'← 返回', btn_submit:'发布房源 🎉',
+    success_title:'房源已发布！',
+    success_sub:'有人感兴趣时会直接加你微信。<br>建议在留学生群转发，更快找到租客。',
+    btn_home:'回到首页',
+    pt_cat:'允许猫咪', pt_dog:'允许狗狗', pt_both:'猫狗都行', pt_no:'不允许',
+    pt_empty:'空置', pt_female:'有女生同住', pt_male:'有男生同住',
+    pt_flex_y:'可以商量', pt_flex_n:'固定',
+    pt_renew_y:'可续租', pt_renew_n:'不续租',
+    maxppl_1:'1人', maxppl_2:'2人', maxppl_3:'3人', maxppl_4:'4人+',
+    bed_opt1:'1卧', bed_opt2:'2卧', bed_opt3:'3卧+',
+    bath_opt1:'1卫', bath_opt2:'2卫', bath_opt3:'3卫+',
+    addr_ph:'如：706 S Mathews Ave, Urbana, IL 61801',
+    unit_ph:'如：1室1卫 · 独立卫浴 · 全家具',
+    note_ph:'如：女生优先 · 含水电网 · 有停车位',
+    wechat_ph:'你的微信号',
+    mine_empty_title:'还没有发布', mine_empty_sub:'发布你的房源，让同学找到你',
+    mine_post_btn:'发布房源',
+    card_vacant:'空置房源', card_female:'有女生同住', card_male:'有男生同住',
+    card_pet:'🐾 宠物友好', card_flex:'租期可商量', card_renew:'可续租',
+    card_urgent:'⚡ 可立即入住',
+    info_price:'月租金', info_avail_from:'可入住', info_avail_to:'到期日期',
+    info_pet_yes:'✅ 宠物友好', info_pet_no:'❌ 不可带宠物',
+    info_flex_yes:'可商量', info_flex_no:'固定',
+    info_renew_yes:'可续租', info_renew_no:'不续租',
+    info_vacant:'空置全新', info_posted:'发布时间',
+    contact_wx_label:'微信号', contact_wx_hint:'复制后在微信搜索添加好友',
+    contact_ph_label:'电话号码', contact_nophone:'房东未留电话，请用微信联系',
+    mine_share:'📤 分享', mine_unpublish:'下架',
+    mine_posted:'发布于',
+    toast_login:'发布房源需要先登录', toast_fav_login:'收藏需要先登录',
+    toast_unpublished:'✅ 已下架', toast_unpublish_fail:'下架失败，请重试',
+    toast_copied:'✅ 已复制！',
+    budget1:'$500以下', budget2:'$500–800', budget3:'$800–1100', budget4:'$1100+',
+    ppl1:'1人', ppl2:'2人', ppl3:'3人+',
+    bed1:'1卧', bed2:'2卧', bed3:'3卧+',
+    bath1:'1卫', bath2:'2卫+',
+    nav_login:'登录', nav_signout:'退出',
+    f_collapse:'－ 收起',
+    pill1:'🏠 个人转租', pill2:'💬 微信直联', pill3:'📅 灵活租期', pill4:'🐾 宠物筛选', pill5:'⚡ 即时入住',
+    filter_more_ppl:'人数', filter_more_bed:'户型',
   },
   en: {
     nav_favs:'❤️ Saved', nav_mine:'My Listings', nav_post:'Post Room',
@@ -1264,6 +1378,51 @@ const I18N = {
     post_title:'Post a Room', post_step1:'Basic Info', post_step2:'Conditions', post_step3:'Photos & Contact',
     mine_title:'My Listings', favs_title:'Saved Rooms',
     share_title:'Share Listing', share_copy:'📋 Copy text (for group chats)',
+    back:'← Back',
+    post_nav_title:'Post a Room',
+    mine_nav_title:'My Listings',
+    lbl_addr:'Address *', lbl_unit:'Description *', lbl_bed:'Bedrooms *', lbl_bath:'Bathrooms *',
+    lbl_avail_from:'Available From *', lbl_avail_to:'Available Until *',
+    lbl_price:'Monthly Rent ($) *', hint_price:'Enter your actual sublet price',
+    btn_next1:'Next: Conditions →',
+    lbl_pet:'Pets *', lbl_occ:'Room Status *', lbl_flex:'Lease', lbl_renew:'Renewal',
+    lbl_maxppl:'Max Occupants', lbl_note:'Additional Notes (optional)',
+    btn_back2:'← Back', btn_next2:'Next: Photos & Contact →',
+    lbl_photos:'Upload Photos *', hint_photos:'3–6 photos recommended · JPG/PNG',
+    lbl_wechat:'WeChat ID *', hint_wechat:'Only shown when tenant taps "View WeChat"',
+    lbl_phone:'Phone (optional)',
+    btn_back3:'← Back', btn_submit:'Post Room 🎉',
+    success_title:'Room Posted!',
+    success_sub:'Interested tenants will add you on WeChat.<br>Share in group chats to find tenants faster.',
+    btn_home:'Back to Home',
+    pt_cat:'Cats OK', pt_dog:'Dogs OK', pt_both:'Cats & Dogs', pt_no:'No Pets',
+    pt_empty:'Vacant', pt_female:'Female roommate', pt_male:'Male roommate',
+    pt_flex_y:'Flexible', pt_flex_n:'Fixed',
+    pt_renew_y:'Renewable', pt_renew_n:'No renewal',
+    maxppl_1:'1 person', maxppl_2:'2 people', maxppl_3:'3 people', maxppl_4:'4+ people',
+    bed_opt1:'1 bed', bed_opt2:'2 beds', bed_opt3:'3+ beds',
+    bath_opt1:'1 bath', bath_opt2:'2 baths', bath_opt3:'3+ baths',
+    addr_ph:'e.g. 706 S Mathews Ave, Urbana, IL 61801',
+    unit_ph:'e.g. 1 bed/1 bath · Private bathroom · Furnished',
+    note_ph:'e.g. Female preferred · Utilities included · Parking available',
+    wechat_ph:'Your WeChat ID',
+    mine_empty_title:'No listings yet', mine_empty_sub:'Post your room to find tenants',
+    mine_post_btn:'Post a Room',
+    card_vacant:'Vacant', card_female:'Female roommate', card_male:'Male roommate',
+    card_pet:'🐾 Pet friendly', card_flex:'Flexible lease', card_renew:'Renewable',
+    card_urgent:'⚡ Move-in Ready',
+    info_price:'Monthly Rent', info_avail_from:'Available From', info_avail_to:'Available Until',
+    info_pet_yes:'✅ Pet Friendly', info_pet_no:'❌ No Pets',
+    info_flex_yes:'Flexible', info_flex_no:'Fixed',
+    info_renew_yes:'Renewable', info_renew_no:'No renewal',
+    info_vacant:'Vacant', info_posted:'Posted',
+    contact_wx_label:'WeChat ID', contact_wx_hint:'Copy and search in WeChat to add friend',
+    contact_ph_label:'Phone Number', contact_nophone:'No phone — use WeChat instead',
+    mine_share:'📤 Share', mine_unpublish:'Unpublish',
+    mine_posted:'Posted',
+    toast_login:'Please sign in to post a room', toast_fav_login:'Sign in to save rooms',
+    toast_unpublished:'✅ Unpublished', toast_unpublish_fail:'Failed — please try again',
+    toast_copied:'✅ Copied!',
     budget1:'Under $500', budget2:'$500–800', budget3:'$800–1100', budget4:'$1100+',
     ppl1:'1 person', ppl2:'2 people', ppl3:'3+ people',
     bed1:'1 bed', bed2:'2 beds', bed3:'3+ beds',
@@ -1351,8 +1510,6 @@ function applyLang(){
   const shareTitle=document.querySelector('#share-modal .modal-title');if(shareTitle)shareTitle.textContent=L.share_title;
   const shareCopy=document.querySelector('#share-modal .mbtn');if(shareCopy)shareCopy.textContent=L.share_copy;
   // screen titles
-  const mineTitle=document.querySelector('#s-mine .nav-logo-en');if(mineTitle)mineTitle.textContent=L.mine_title;
-  const favsTitle=document.querySelector('#s-favs .nav-logo-en');if(favsTitle)favsTitle.textContent=L.favs_title;
   // user menu
   const umMine=document.querySelector('.user-menu-item:nth-child(2)');if(umMine)umMine.textContent=L.user_mine;
   const umOut=document.querySelector('.user-menu-item.danger');if(umOut)umOut.textContent=L.user_signout;
@@ -1368,8 +1525,6 @@ function applyLang(){
   if(loginModalTitle) loginModalTitle.textContent = currentLang==='en'?'Sign in to OrangeNest':'登录 OrangeNest';
 
   // Post screen title
-  const postNavTitle = document.querySelector('#s-post .nav-logo-en');
-  if(postNavTitle) postNavTitle.textContent = L.post_title||'发布房源';
 
   // Step labels
   const stepLabels = [[L.post_step1,'基本信息'],[L.post_step2,'入住条件'],[L.post_step3,'照片联系']];
@@ -1417,8 +1572,68 @@ function applyLang(){
   const logoSub = document.getElementById('nav-logo-cn');
   if(logoSub) logoSub.style.display = currentLang==='en' ? 'none' : '';
 
-  // Re-render auth button with correct language
+  // ── Back buttons ──
+  const backBtns = document.querySelectorAll('.btn-back');
+  backBtns.forEach(b => b.textContent = t('back'));
+
+  // ── Post form nav ──
+  const postNavTitle = document.getElementById('post-nav-title');
+  if(postNavTitle) postNavTitle.textContent = t('post_nav_title');
+
+  // ── My listings nav ──
+  const mineNavTitle = document.getElementById('mine-nav-title');
+  if(mineNavTitle) mineNavTitle.textContent = t('mine_nav_title');
+
+  // ── Step labels ──
+  const stepMap = [['sl1','post_step1'],['sl2','post_step2'],['sl3','post_step3']];
+  stepMap.forEach(([id,key])=>{ const el=document.getElementById(id); if(el) el.textContent=t(key); });
+
+  // ── Form labels ──
+  const lblMap = {
+    'lbl-addr':'lbl_addr','lbl-unit':'lbl_unit','lbl-bed':'lbl_bed','lbl-bath':'lbl_bath',
+    'lbl-avail-from':'lbl_avail_from','lbl-avail-to':'lbl_avail_to',
+    'lbl-price':'lbl_price','hint-price':'hint_price',
+    'lbl-pet':'lbl_pet','lbl-occ':'lbl_occ','lbl-flex':'lbl_flex','lbl-renew':'lbl_renew',
+    'lbl-maxppl':'lbl_maxppl','lbl-note':'lbl_note',
+    'lbl-photos':'lbl_photos','hint-photos':'hint_photos',
+    'lbl-wechat':'lbl_wechat','hint-wechat':'hint_wechat','lbl-phone':'lbl_phone',
+    'btn-next1':'btn_next1','btn-back2':'btn_back2','btn-next2':'btn_next2',
+    'btn-back3':'btn_back3','btn-submit':'btn_submit','btn-home':'btn_home',
+    'success-title':'success_title',
+  };
+  Object.entries(lblMap).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(key);
+  });
+  // success-sub has HTML
+  const successSub=document.getElementById('success-sub');
+  if(successSub) successSub.innerHTML=t('success_sub');
+
+  // ── Form placeholders ──
+  const phMap = {'f-addr':'addr_ph','f-unit':'unit_ph','f-note':'note_ph','f-wechat':'wechat_ph'};
+  Object.entries(phMap).forEach(([id,key])=>{ const el=document.getElementById(id); if(el) el.placeholder=t(key); });
+
+  // ── Pet/occ/flex/renew toggle buttons ──
+  const optMap = {
+    'pt-cat':'pt_cat','pt-dog':'pt_dog','pt-both':'pt_both','pt-no':'pt_no',
+    'pt-empty':'pt_empty','pt-female':'pt_female','pt-male':'pt_male',
+    'pt-flex-y':'pt_flex_y','pt-flex-n':'pt_flex_n',
+    'pt-renew-y':'pt_renew_y','pt-renew-n':'pt_renew_n',
+  };
+  Object.entries(optMap).forEach(([id,key])=>{ const el=document.getElementById(id); if(el) el.textContent=t(key); });
+
+  // ── Select options ──
+  const fbed=document.getElementById('f-bed');
+  if(fbed){ fbed.options[0].text=t('bed_opt1');fbed.options[1].text=t('bed_opt2');fbed.options[2].text=t('bed_opt3'); }
+  const fbath=document.getElementById('f-bath');
+  if(fbath){ fbath.options[0].text=t('bath_opt1');fbath.options[1].text=t('bath_opt2');fbath.options[2].text=t('bath_opt3'); }
+  const fmaxppl=document.getElementById('f-maxppl');
+  if(fmaxppl){ fmaxppl.options[0].text=t('maxppl_1');fmaxppl.options[1].text=t('maxppl_2');fmaxppl.options[2].text=t('maxppl_3');fmaxppl.options[3].text=t('maxppl_4'); }
+
+  // ── Re-render auth button ──
   renderNavAuth();
+  // Re-render cards (dates/timeago/tags update with lang)
+  if(ALL_ROOMS.length) doFilter();
 }
 
 // ══ INIT ══
