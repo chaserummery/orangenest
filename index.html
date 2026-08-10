@@ -1261,6 +1261,7 @@ async function doSetPassword(){
   btn.disabled = false; btn.textContent = currentLang==='en'?'Set password':'设置密码';
   if(error){ showToast((currentLang==='en'?'Failed: ':'失败：')+error.message); return; }
   document.getElementById('set-pwd-modal').classList.remove('open');
+  if(currentUser) localStorage.setItem('on_pwd_set_' + currentUser.id, '1');
   showToast(currentLang==='en'?'✅ Password set! Use it next time to sign in.':'✅ 密码设置成功！下次直接用密码登录');
 }
 
