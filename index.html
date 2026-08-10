@@ -623,7 +623,10 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <input class="login-input" id="login-email-signin" type="email" placeholder="your@email.com"/>
         <input class="login-input" id="login-pwd-signin" type="password" placeholder="密码"/>
         <button class="login-btn" id="login-btn-signin" onclick="doSignIn()">登录 →</button>
-        <div style="text-align:center;margin-top:12px">
+        <div style="text-align:center;margin-top:8px">
+          <button onclick="switchToForgot()" style="font-size:12px;color:var(--ink3);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline" id="login-forgot-link">忘记密码？</button>
+        </div>
+        <div style="text-align:center;margin-top:8px">
           <span style="font-size:12px;color:var(--ink3)" id="login-no-account">还没有账号？</span>
           <button onclick="switchToRegister()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;margin-left:4px" id="login-register-link">点此注册</button>
         </div>
@@ -645,6 +648,22 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <div style="text-align:center;margin-top:12px" id="login-have-account-row">
           <span style="font-size:12px;color:var(--ink3)" id="login-have-account">已有账号？</span>
           <button onclick="switchToSignIn()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;margin-left:4px" id="login-signin-link">直接登录</button>
+        </div>
+      </div>
+
+      <!-- 忘记密码面板 -->
+      <div id="login-panel-forgot" style="display:none">
+        <div class="login-desc" id="login-desc-forgot">输入注册邮箱，我们发一封重置密码的邮件</div>
+        <input class="login-input" id="login-email-forgot" type="email" placeholder="your@email.com"/>
+        <button class="login-btn" id="login-btn-forgot" onclick="doForgotPassword()">发送重置邮件 →</button>
+        <div class="login-sent" id="login-sent-forgot" style="display:none">
+          <div style="font-size:36px;margin-bottom:10px">📬</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">邮件已发送！</div>
+          <div style="font-size:13px;color:var(--ink3);line-height:1.7">去查收邮件，点击链接重置密码。没收到？检查垃圾邮件箱。</div>
+          <button onclick="switchToSignIn()" style="margin-top:12px;font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">← 返回登录</button>
+        </div>
+        <div style="text-align:center;margin-top:12px" id="login-forgot-back-row">
+          <button onclick="switchToSignIn()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700">← 返回登录</button>
         </div>
       </div>
 
@@ -818,6 +837,29 @@ function toggleUserMenu(){ document.getElementById('user-menu').classList.toggle
 function closeUserMenu(){ document.getElementById('user-menu').classList.remove('open') }
 document.addEventListener('click', e => { if(!e.target.closest('.nav-avatar')&&!e.target.closest('.user-menu')) closeUserMenu() });
 
+function switchToForgot(){
+  document.getElementById('login-panel-signin').style.display='none';
+  document.getElementById('login-panel-register').style.display='none';
+  document.getElementById('login-panel-forgot').style.display='';
+  document.getElementById('login-modal-title').textContent = currentLang==='en'?'Reset Password':'重置密码';
+}
+
+async function doForgotPassword(){
+  const email = document.getElementById('login-email-forgot').value.trim();
+  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
+  const btn = document.getElementById('login-btn-forgot');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '?reset_pwd=1'
+  });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Send reset email →':'发送重置邮件 →';
+  if(error){ showToast((currentLang==='en'?'Failed: ':'发送失败：')+error.message); return; }
+  document.getElementById('login-email-forgot').style.display='none';
+  document.getElementById('login-btn-forgot').style.display='none';
+  document.getElementById('login-forgot-back-row').style.display='none';
+  document.getElementById('login-sent-forgot').style.display='block';
+}
+
 function switchToRegister(){
   document.getElementById('login-panel-signin').style.display='none';
   document.getElementById('login-panel-register').style.display='';
@@ -829,6 +871,7 @@ function switchToRegister(){
 
 function switchToSignIn(){
   document.getElementById('login-panel-register').style.display='none';
+  document.getElementById('login-panel-forgot').style.display='none';
   document.getElementById('login-panel-signin').style.display='';
   document.getElementById('login-modal-title').textContent = currentLang==='en'?'Sign in to OrangeNest':'登录 OrangeNest';
 }
@@ -1666,9 +1709,22 @@ function openLogin(){
 }
 function closeLogin(){ 
   document.getElementById('login-modal').classList.remove('open'); 
-  resetLoginForm(); 
-  const ep=document.getElementById('login-email-pwd'); if(ep)ep.value=''; 
-  const pp=document.getElementById('login-pwd-input'); if(pp)pp.value=''; 
+  switchToSignIn();
+  // Reset signin fields
+  const es=document.getElementById('login-email-signin'); if(es)es.value='';
+  const ps=document.getElementById('login-pwd-signin'); if(ps)ps.value='';
+  // Reset register fields
+  const er=document.getElementById('login-email-register'); if(er){er.value='';er.style.display='';}
+  const pr=document.getElementById('login-pwd-register'); if(pr){pr.value='';pr.style.display='';}
+  const pr2=document.getElementById('login-pwd-register2'); if(pr2){pr2.value='';pr2.style.display='';}
+  const br=document.getElementById('login-btn-register'); if(br)br.style.display='';
+  const hr=document.getElementById('login-have-account-row'); if(hr)hr.style.display='';
+  const sr=document.getElementById('login-sent-register'); if(sr)sr.style.display='none';
+  // Reset forgot fields
+  const ef=document.getElementById('login-email-forgot'); if(ef){ef.value='';ef.style.display='';}
+  const bf=document.getElementById('login-btn-forgot'); if(bf)bf.style.display='';
+  const sf=document.getElementById('login-sent-forgot'); if(sf)sf.style.display='none';
+  const rf=document.getElementById('login-forgot-back-row'); if(rf)rf.style.display='';
 }
 async function signOut(){
   await sb.auth.signOut();
@@ -2017,6 +2073,14 @@ function applyLang(){
   if(haveAcct) haveAcct.textContent = currentLang==='en'?'Already have an account?':'已有账号？';
   const signinLink = document.getElementById('login-signin-link');
   if(signinLink) signinLink.textContent = currentLang==='en'?'Sign in':'直接登录';
+  const forgotLink = document.getElementById('login-forgot-link');
+  if(forgotLink) forgotLink.textContent = currentLang==='en'?'Forgot password?':'忘记密码？';
+  const forgotDesc = document.getElementById('login-desc-forgot');
+  if(forgotDesc) forgotDesc.textContent = currentLang==='en'?'Enter your email to receive a password reset link':'输入注册邮箱，我们发一封重置密码的邮件';
+  const forgotEmail = document.getElementById('login-email-forgot');
+  if(forgotEmail) forgotEmail.placeholder = 'your@email.com';
+  const forgotBtn = document.getElementById('login-btn-forgot');
+  if(forgotBtn) forgotBtn.textContent = currentLang==='en'?'Send reset email →':'发送重置邮件 →';
 
 
   // Post screen title
