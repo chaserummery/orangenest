@@ -4,6 +4,18 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>OrangeNest 橙舍 — UIUC留学生短租平台</title>
+<meta name="description" content="OrangeNest 橙舍 — 专为UIUC留学生的短租转租平台。无中介，微信直联，支持宠物筛选。Find sublets near UIUC with no agent fees."/>
+<meta property="og:title" content="OrangeNest 橙舍 — UIUC留学生短租平台"/>
+<meta property="og:description" content="无中介 · 微信直联 · 宠物筛选 · Find sublets near UIUC. No agent fees, WeChat direct contact."/>
+<meta property="og:image" content="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80"/>
+<meta property="og:url" content="https://orangenest.vercel.app"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="OrangeNest 橙舍"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="OrangeNest 橙舍 — UIUC留学生短租平台"/>
+<meta name="twitter:description" content="无中介 · 微信直联 · 宠物筛选 · No agent fees, WeChat direct contact."/>
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E07A3D'/><text y='72' x='50' text-anchor='middle' font-size='60'>🏠</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
@@ -176,9 +188,9 @@ img{display:block}
 .cal-day{font-size:11px;text-align:center;padding:5px 2px 8px;border-radius:6px;color:var(--ink3);font-weight:500;position:relative}
 .cal-day.occ{background:#FEE2E2;color:var(--red);font-weight:700}
 .cal-day.avail{background:#CCFBF1;color:var(--teal);font-weight:700}
-.cal-day.today{position:relative;font-weight:700;color:var(--orange)}.cal-day.today::after{content:'·';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--orange);line-height:1}
-.cal-day.sel{box-shadow:inset 0 0 0 2px var(--orange);border-radius:6px;font-weight:700}
-.cal-day.avail.sel{background:#CCFBF1;color:var(--teal);box-shadow:inset 0 0 0 2px var(--orange);font-weight:700}
+.cal-day.today{position:relative;font-weight:700;color:var(--orange)}.cal-day.today::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:5px;height:5px;background:var(--orange);border-radius:50%}
+.cal-day.sel{outline:2px dashed var(--orange);outline-offset:-2px;font-weight:700}
+.cal-day.avail.sel{background:#CCFBF1;color:var(--teal);outline:2px dashed var(--orange);outline-offset:-2px;font-weight:700}
 .cal-legend{display:flex;gap:12px;padding:10px 18px;border-top:1px solid var(--cream2);flex-wrap:wrap;background:var(--cream)}
 .cal-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2);font-weight:500}
 .leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
@@ -246,10 +258,18 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 .login-body{padding:24px 20px;display:flex;flex-direction:column;gap:14px}
 .login-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);text-align:center}
 .login-sub{font-size:13px;color:var(--ink3);text-align:center;line-height:1.6}
-.login-input{font-size:14px;padding:11px 14px;border-radius:var(--r);border:1.5px solid var(--cream3);background:#fff;color:var(--ink);outline:none;width:100%;font-family:'DM Sans',sans-serif}
+.login-input{font-size:14px;padding:11px 14px;border-radius:var(--r);border:1.5px solid var(--cream3);background:#fff;color:var(--ink);outline:none;width:100%;font-family:'DM Sans',sans-serif;display:block;margin-bottom:10px}
 .login-input:focus{border-color:var(--orange)}
 .login-btn{width:100%;padding:12px;border-radius:30px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
 .login-btn:hover{background:#B45309}
+.login-tabs{display:flex;gap:0;margin-bottom:16px;background:var(--cream2);border-radius:12px;padding:3px}
+.login-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--ink3);font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;transition:all .15s;font-family:'DM Sans',sans-serif}
+.login-tab.active{background:#fff;color:var(--orange);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.login-desc{font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:12px;text-align:center}
+.login-tabs{display:flex;gap:0;margin-bottom:16px;background:var(--cream2);border-radius:12px;padding:3px}
+.login-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--ink3);font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;transition:all .15s;font-family:'DM Sans',sans-serif}
+.login-tab.active{background:#fff;color:var(--orange);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.login-desc{font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:12px;text-align:center}
 .login-hint{font-size:11px;color:var(--ink3);text-align:center;line-height:1.6}
 .login-sent{text-align:center;padding:8px 0;display:none}
 .login-sent-icon{font-size:40px;margin-bottom:12px}
@@ -590,23 +610,32 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 <div class="modal-bg" id="login-modal">
   <div class="modal">
     <div class="modal-hdr">
-      <span class="modal-title">登录 OrangeNest</span>
+      <span class="modal-title" id="login-modal-title">登录 OrangeNest</span>
       <button class="modal-close" onclick="closeLogin()">×</button>
     </div>
     <div class="login-body">
-      <div class="login-title">欢迎回来 👋</div>
-      <div class="login-sub" id="login-sub">输入邮箱，我们发一封登录链接给你<br>无需密码，点击链接直接登录</div>
-      <div id="login-form">
-        <input class="login-input" id="login-email" type="email" placeholder="your@email.com" style="margin-bottom:8px"/>
-        <input class="login-input" id="login-pwd" type="password" placeholder="设置密码（可选，填了直接登录）" style="margin-bottom:10px"/>
-        <button class="login-btn" onclick="sendMagicLink()">登录 / 注册 →</button>
+      <div class="login-tabs">
+        <button class="login-tab active" id="tab-magic" onclick="switchLoginTab('magic')">📧 邮件登录</button>
+        <button class="login-tab" id="tab-pwd" onclick="switchLoginTab('pwd')">🔑 密码登录</button>
       </div>
-      <div class="login-sent" id="login-sent">
-        <div class="login-sent-icon">📬</div>
-        <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">邮件已发送！</div>
-        <div style="font-size:13px;color:var(--ink3);line-height:1.7">去查收邮件，点击链接即可登录。<br>没收到？检查垃圾邮件箱。</div>
+      <div id="login-panel-magic">
+        <div class="login-desc">输入邮箱，我们发一个登录链接，点击即可登录，无需密码。</div>
+        <input class="login-input" id="login-email-magic" type="email" placeholder="your@email.com"/>
+        <button class="login-btn" id="login-btn-magic" onclick="doMagicLink()">发送登录链接 →</button>
+        <div class="login-sent" id="login-sent-magic">
+          <div style="font-size:36px;margin-bottom:10px">📬</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">邮件已发送！</div>
+          <div style="font-size:13px;color:var(--ink3);line-height:1.7">去查收邮件，点击「Sign in」链接即可登录。<br>没收到？检查垃圾邮件箱。</div>
+          <button onclick="resetLoginForm()" style="margin-top:12px;font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">重新发送</button>
+        </div>
       </div>
-      <div class="login-hint">填密码可直接登录；不填密码则发登录链接到邮箱</div>
+      <div id="login-panel-pwd" style="display:none">
+        <div class="login-desc">有账号直接登录；没有账号填完自动注册。</div>
+        <input class="login-input" id="login-email-pwd" type="email" placeholder="your@email.com"/>
+        <input class="login-input" id="login-pwd-input" type="password" placeholder="密码（至少6位）"/>
+        <button class="login-btn" id="login-btn-pwd" onclick="doPwdLogin()">登录 / 注册 →</button>
+        <div style="font-size:11px;color:var(--ink3);text-align:center;margin-top:4px">没有账号？填完直接自动注册</div>
+      </div>
     </div>
   </div>
 </div>
@@ -674,55 +703,72 @@ function toggleUserMenu(){ document.getElementById('user-menu').classList.toggle
 function closeUserMenu(){ document.getElementById('user-menu').classList.remove('open') }
 document.addEventListener('click', e => { if(!e.target.closest('.nav-avatar')&&!e.target.closest('.user-menu')) closeUserMenu() });
 
-async function sendMagicLink(){
-  const email = document.getElementById('login-email').value.trim();
-  const pwd = document.getElementById('login-pwd').value.trim();
-  if(!email){ showToast('请输入邮箱'); return; }
+function switchLoginTab(tab){
+  document.getElementById('tab-magic').classList.toggle('active', tab==='magic');
+  document.getElementById('tab-pwd').classList.toggle('active', tab==='pwd');
+  document.getElementById('login-panel-magic').style.display = tab==='magic'?'':'none';
+  document.getElementById('login-panel-pwd').style.display = tab==='pwd'?'':'none';
+}
 
-  // 如果填了密码，用密码登录/注册
-  if(pwd){
-    // 先试登录
-    let { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
-    if(error && error.message.includes('Invalid login')){
-      // 账号不存在，自动注册
+function resetLoginForm(){
+  const sent = document.getElementById('login-sent-magic');
+  const email = document.getElementById('login-email-magic');
+  const btn = document.getElementById('login-btn-magic');
+  if(sent) sent.style.display='none';
+  if(email){ email.style.display=''; email.value=''; }
+  if(btn){ btn.style.display=''; btn.textContent=currentLang==='en'?'Send sign-in link →':'发送登录链接 →'; }
+}
+
+async function doMagicLink(){
+  const email = document.getElementById('login-email-magic').value.trim();
+  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
+  const btn = document.getElementById('login-btn-magic');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
+  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin } });
+  btn.disabled=false;
+  if(error){ btn.textContent=currentLang==='en'?'Send sign-in link →':'发送登录链接 →'; showToast((currentLang==='en'?'Failed: ':'发送失败：')+error.message); return; }
+  document.getElementById('login-email-magic').style.display='none';
+  btn.style.display='none';
+  document.getElementById('login-sent-magic').style.display='block';
+}
+
+async function doPwdLogin(){
+  const email = document.getElementById('login-email-pwd').value.trim();
+  const pwd = document.getElementById('login-pwd-input').value.trim();
+  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
+  if(!pwd||pwd.length<6){ showToast(currentLang==='en'?'Password must be at least 6 characters':'密码至少6位'); return; }
+  const btn = document.getElementById('login-btn-pwd');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Signing in…':'登录中…';
+  let { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  if(error){
+    const isInvalidCreds = error.message.includes('Invalid login') || error.message.includes('invalid_credentials');
+    if(isInvalidCreds){
+      // Try sign up — if email already exists (Magic Link user), tell them to use Magic Link
       const res = await sb.auth.signUp({ email, password: pwd });
-      if(res.error){ showToast('注册失败：'+res.error.message); return; }
+      if(res.error){
+        btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
+        if(res.error.message.includes('already registered') || res.error.message.includes('already exists')){
+          // Email exists but no password set — guide to magic link
+          showToast(currentLang==='en'?'This email is registered. Use the Magic Link tab to sign in.':'该邮箱已注册，请用「邮件登录」Tab 登录。');
+          switchLoginTab('magic');
+          document.getElementById('login-email-magic').value = email;
+        } else {
+          showToast((currentLang==='en'?'Failed: ':'注册失败：')+res.error.message);
+        }
+        return;
+      }
       data = res.data;
-    } else if(error){
-      showToast('登录失败：'+error.message); return;
+      showToast(currentLang==='en'?'✅ Account created!':'✅ 注册成功！');
+    } else {
+      btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
+      showToast((currentLang==='en'?'Sign in failed: ':'登录失败：')+error.message); return;
     }
-    if(data?.user){
-      currentUser = data.user;
-      renderNavAuth();
-      loadFavIds();
-      closeLogin();
-      showToast('✅ 登录成功！');
-    }
-    return;
   }
-
-  // 没填密码，用 Magic Link
-  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
-  if(error){ showToast('发送失败：'+error.message); return; }
-  document.getElementById('login-form').style.display = 'none';
-  document.getElementById('login-sent').style.display = 'block';
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
+  if(data?.user){ currentUser=data.user; renderNavAuth(); closeLogin(); showToast(currentLang==='en'?'✅ Signed in!':'✅ 登录成功！'); }
 }
 
-async function signOut(){
-  await sb.auth.signOut();
-  currentUser = null; FAVS = new Set();
-  renderNavAuth();
-  showToast('已退出登录');
-  goScreen('s-list');
-}
-
-function openLogin(){ document.getElementById('login-modal').classList.add('open') }
-function closeLogin(){ document.getElementById('login-modal').classList.remove('open');document.getElementById('login-form').style.display='block';document.getElementById('login-sent').style.display='none';document.getElementById('login-email').value='' }
-
-function gatePost(){
-  if(!currentUser){ openLogin(); showToast(t('toast_login')); return; }
-  goStep(1); goScreen('s-post');
-}
+async function sendMagicLink(){ doMagicLink(); }
 
 // ══ 收藏 ══
 // ══ DATA ══
@@ -744,8 +790,8 @@ function rowToRoom(r){
 }
 
 async function loadListings(){
-  document.getElementById('grid').innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><div style="font-size:13px;color:var(--ink3)">正在加载…</div></div>';
-  document.getElementById('rcount').textContent = '加载中…';
+  document.getElementById('grid').innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><div style="font-size:13px;color:var(--ink3)">${currentLang==='en'?'Loading…':'正在加载…'}</div></div>`;
+  document.getElementById('rcount').textContent = currentLang==='en'?'Loading…':'加载中…';
   try {
     const { data, error } = await sb.from('listings').select('*').eq('status','active').order('created_at',{ascending:false});
     if(error) throw error;
@@ -788,7 +834,7 @@ function doFilter(){
   if(sortMode==='price-asc') res.sort((a,b)=>a.price-b.price);
   else if(sortMode==='price-desc') res.sort((a,b)=>b.price-a.price);
   else res.sort((a,b)=>b.createdAt-a.createdAt);
-  document.getElementById('rcount').textContent = `${res.length} 个房源`;
+  document.getElementById('rcount').textContent = currentLang==='en'?`${res.length} listing${res.length!==1?'s':''}`:`${res.length} 个房源`;
   const hasF = Object.keys(sel).length>0||fF||fT;
   document.getElementById('clear-btn').classList.toggle('show', !!hasF);
   renderCardsWithTranslation(res);
@@ -885,7 +931,7 @@ function openDetail(id){
 function buildGallery(){
   const n = cur.photos.length;
   document.getElementById('gslides').innerHTML = cur.photos.map((url,i)=>
-    `<div class="gslide ${i===0?'on':''}" id="sl${i}"><img src="${url}" alt="照片${i+1}" loading="${i===0?'eager':'lazy'}"/></div>`
+    `<div class="gslide ${i===0?'on':''}" id="sl${i}"><img src="${url}" alt="${currentLang==='en'?'Photo':'照片'} ${i+1}" loading="${i===0?'eager':'lazy'}"/></div>`
   ).join('');
   document.getElementById('gctr').textContent = `1 / ${n}`;
   document.getElementById('gdots').innerHTML = cur.photos.map((_,i)=>
@@ -923,7 +969,7 @@ function jumpToday(){ calY=TODAY.getFullYear();calM=TODAY.getMonth();renderCal()
 function calNav(dir){ calM+=dir;if(calM>11){calM=0;calY++}if(calM<0){calM=11;calY--}renderCal() }
 function renderCal(){
   const r=cur,dim=new Date(calY,calM+1,0).getDate(),fd=new Date(calY,calM,1).getDay();
-  document.getElementById('cal-title').textContent=`${calY}年${calM+1}月`;
+  document.getElementById('cal-title').textContent=currentLang==='en'?`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][calM]} ${calY}`:`${calY}年${calM+1}月`;
   const minD=r.occFrom||r.availFrom||new Date(),maxD=r.availTo||new Date();
   document.getElementById('cal-prev').disabled=new Date(calY,calM,1)<=new Date(minD.getFullYear(),minD.getMonth(),1);
   document.getElementById('cal-next').disabled=new Date(calY,calM,1)>=new Date(maxD.getFullYear(),maxD.getMonth(),1);
@@ -950,7 +996,7 @@ function renderCal(){
   const leg=[];
   if(r.occFrom) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:#FEE2E2;border:1px solid #FCA5A5"></div>${currentLang==='en'?'Occupied':'已有'}${r.occGender||''}${currentLang==='en'?'':'生入住'}</div>`);
   if(r.availFrom) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:#CCFBF1;border:1px solid #5EEAD4"></div>${currentLang==='en'?'Available':'空闲可租'}</div>`);
-  if(selFrom||selTo) leg.push(`<div class="cal-leg"><div class="leg-sq" style="background:var(--orange-mid);border:1px solid var(--orange)"></div>${currentLang==='en'?'Your dates':'你选择的日期'}</div>`);
+  if(selFrom||selTo) leg.push(`<div class="cal-leg"><div class="leg-sq" style="outline:2px dashed var(--orange);outline-offset:-1px;border-radius:3px"></div>${currentLang==='en'?'Your dates':'你选择的日期'}</div>`);
   leg.push(`<div class="cal-leg"><div class="leg-sq" style="outline:2px solid var(--orange);outline-offset:-1px;border-radius:2px"></div>${currentLang==='en'?'Today':'今天'}</div>`);
   document.getElementById('cal-grid').style.cursor='pointer';
   document.getElementById('cal-legend').innerHTML=leg.join('') + `<div style="font-size:10px;color:var(--ink3);width:100%;margin-top:4px">${currentLang==='en'?'💡 Click dates to set your move-in period':'💡 点击日期可设置你的入住时间段'}</div>`;
@@ -989,10 +1035,22 @@ function doReveal(type){
     document.getElementById('rv-wx').classList.add('show');
     document.querySelector('#rv-wx .rlabel').textContent=t('contact_wx_label');
     document.querySelector('#rv-wx .rhint').textContent=t('contact_wx_hint');
-    // 显示话术
+    // 话术：优先使用用户筛选选择的日期，否则用房源可用日期
+    const filterFrom = document.getElementById('f-from').value;
+    const filterTo = document.getElementById('f-to').value;
+    const scriptFrom = filterFrom ? new Date(filterFrom+'T00:00:00') : cur.availFrom;
+    const scriptTo = filterTo ? new Date(filterTo+'T00:00:00') : cur.availTo;
+    const dateRange = scriptFrom && scriptTo
+      ? (currentLang==='en' ? `from ${fmtS(scriptFrom)} to ${fmtS(scriptTo)}` : `${fmtS(scriptFrom)} 到 ${fmtS(scriptTo)}`)
+      : scriptFrom
+        ? (currentLang==='en' ? `from ${fmtS(scriptFrom)}` : `从 ${fmtS(scriptFrom)} 开始`)
+        : '';
+    const petQ = cur.pet
+      ? (currentLang==='en' ? " I have a pet — your listing says pet friendly, could you tell me more?" : '我有宠物，你的帖子上写宠物友好，请问具体是什么宠物都可以吗？')
+      : '';
     const script = currentLang==='en'
-    ? `Hi! I found your listing on OrangeNest (${cur.addr}) and I'm interested in renting from ${cur.availFrom?fmtS(cur.availFrom):''}${cur.availTo?' to '+fmtS(cur.availTo):''}.${cur.pet?' I have a pet — your listing says pet friendly, could you tell me more?':''} Looking forward to hearing from you!`
-    : `你好！我在 OrangeNest 上看到你发布的房源（${cur.addr}），想租 ${cur.availFrom?fmtS(cur.availFrom):''}${cur.availTo?' 到 '+fmtS(cur.availTo):''}，请问还有空吗？${cur.pet?'我有宠物，你的帖子上写宠物友好，请问具体是什么宠物都可以吗？':''} 期待你的回复！`;
+      ? `Hi! I found your listing on OrangeNest (${cur.addr}) and I'm interested in renting ${dateRange}.${petQ} Looking forward to hearing from you!`
+      : `你好！我在 OrangeNest 上看到你发布的房源（${cur.addr}），想租 ${dateRange}，请问还有空吗？${petQ} 期待你的回复！`;
     document.getElementById('script-text').textContent=script;
     document.getElementById('script-box').style.display='block';
   } else {
@@ -1004,13 +1062,13 @@ function doReveal(type){
 
 function copyScript(){
   navigator.clipboard.writeText(document.getElementById('script-text').textContent)
-    .then(()=>showToast('✅ 话术已复制，去粘贴给房东吧'))
-    .catch(()=>showToast('请手动复制'));
+    .then(()=>showToast(currentLang==='en'?'✅ Copied! Paste it to the landlord':'✅ 话术已复制，去粘贴给房东吧'))
+    .catch(()=>showToast(currentLang==='en'?'Please copy manually':'请手动复制'));
 }
 
 function reportListing(){
-  if(confirm('确认举报这条房源为虚假信息？')){
-    showToast('已收到举报，我们会尽快处理');
+  if(confirm(currentLang==='en'?'Report this listing as fraudulent?':'确认举报这条房源为虚假信息？')){
+    showToast(currentLang==='en'?'Report received, thanks!':'已收到举报，我们会尽快处理');
   }
 }
 
@@ -1044,16 +1102,22 @@ function copyShareText(){
   navigator.clipboard.writeText(txt).then(()=>{
     const t=document.getElementById('copy-toast');t.style.display='block';
     setTimeout(()=>t.style.display='none',2000);
-  }).catch(()=>alert('请手动复制'));
+  }).catch(()=>alert(currentLang==='en'?'Please copy manually':'请手动复制'));
 }
 
 // ══ MY LISTINGS ══
 async function showMyListings(){
-  if(!currentUser){ openLogin(); showToast('查看我的发布需要先登录'); return; }
+  if(!currentUser){ openLogin(); showToast(currentLang==='en'?'Sign in to view your listings':'查看我的发布需要先登录'); return; }
   goScreen('s-mine');
   document.getElementById('mine-list').innerHTML='<div class="loading-state"><div class="loading-spinner"></div></div>';
-  const { data } = await sb.from('listings').select('*')
+  // Try owner_id first (new), fallback to owner_uid (old)
+  let { data } = await sb.from('listings').select('*')
     .eq('owner_id', currentUser.id).order('created_at',{ascending:false});
+  if(!data || data.length===0){
+    const res2 = await sb.from('listings').select('*')
+      .eq('owner_uid', currentUser.id).order('created_at',{ascending:false});
+    if(res2.data && res2.data.length>0) data = res2.data;
+  }
   renderMyListings((data||[]).map(rowToRoom));
 }
 
@@ -1094,24 +1158,24 @@ async function delListing(id){
 async function submitListing(){
   const wechat = document.getElementById('f-wechat').value.trim();
   const files = document.getElementById('photo-input').files;
-  if(!wechat){ showToast('请填写微信号'); return; }
-  if(!files.length){ showToast('请至少上传一张照片'); return; }
+  if(!wechat){ showToast(currentLang==='en'?'Please enter your WeChat ID':'请填写微信号'); return; }
+  if(!files.length){ showToast(currentLang==='en'?'Please upload at least one photo':'请至少上传一张照片'); return; }
   const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='发布中…';
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Posting…':'发布中…';
   document.getElementById('upload-progress').style.display='block';
   try {
     const photoUrls=[];
     for(let i=0;i<files.length;i++){
       const file=files[i], ext=file.name.split('.').pop();
       const path=`${currentUser.id}/${Date.now()}_${i}.${ext}`;
-      document.getElementById('upload-status').textContent=`上传照片 ${i+1}/${files.length}…`;
+      document.getElementById('upload-status').textContent=currentLang==='en'?`Uploading photo ${i+1}/${files.length}…`:`上传照片 ${i+1}/${files.length}…`;
       document.getElementById('progress-fill').style.width=`${Math.round((i/files.length)*80)}%`;
       const { error:upErr } = await sb.storage.from('listing-photos').upload(path,file,{upsert:true});
       if(upErr) throw upErr;
       const { data:urlData } = sb.storage.from('listing-photos').getPublicUrl(path);
       photoUrls.push(urlData.publicUrl);
     }
-    document.getElementById('upload-status').textContent='保存房源信息…';
+    document.getElementById('upload-status').textContent=currentLang==='en'?'Saving listing…':'保存房源信息…';
     document.getElementById('progress-fill').style.width='90%';
     const petVal=formState.pet, hasPet=petVal&&petVal!=='no';
     const { error:dbErr } = await sb.from('listings').insert({
@@ -1133,8 +1197,8 @@ async function submitListing(){
     document.getElementById('upload-progress').style.display='none';
     goStep(4); resetForm();
   } catch(e){
-    console.error(e); showToast('发布失败：'+(e.message||'请重试'));
-    btn.disabled=false; btn.textContent='发布房源 🎉';
+    console.error(e); showToast((currentLang==='en'?'Post failed: ':'发布失败：')+(e.message||(currentLang==='en'?'Please try again':'请重试')));
+    btn.disabled=false; btn.textContent=currentLang==='en'?'Post Room 🎉':'发布房源 🎉';
     document.getElementById('upload-progress').style.display='none';
   }
 }
@@ -1149,7 +1213,7 @@ function resetForm(){
   Object.keys(formState).forEach(k=>formState[k]=null);
   document.querySelectorAll('.topt').forEach(e=>e.classList.remove('sy','sn','sb'));
   const btn=document.getElementById('submit-btn');
-  if(btn){ btn.disabled=false; btn.textContent='发布房源 🎉'; }
+  if(btn){ btn.disabled=false; btn.textContent=currentLang==='en'?'Post Room 🎉':'发布房源 🎉'; }
 }
 
 // ══ FORM UTILS ══
@@ -1159,7 +1223,7 @@ function nextStep1(){
   const price=document.getElementById('f-price').value;
   const from=document.getElementById('f-avail-from').value;
   const to=document.getElementById('f-avail-to').value;
-  if(!addr||!unit||!price||!from||!to){ showToast('请填写所有必填项'); return; }
+  if(!addr||!unit||!price||!from||!to){ showToast(currentLang==='en'?'Please fill in all required fields':'请填写所有必填项'); return; }
   goStep(2);
 }
 function goStep(n){
@@ -1218,6 +1282,27 @@ function goScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+}
+
+function openLogin(){ 
+  document.getElementById('login-modal').classList.add('open'); 
+}
+function closeLogin(){ 
+  document.getElementById('login-modal').classList.remove('open'); 
+  resetLoginForm(); 
+  const ep=document.getElementById('login-email-pwd'); if(ep)ep.value=''; 
+  const pp=document.getElementById('login-pwd-input'); if(pp)pp.value=''; 
+}
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser = null;
+  renderNavAuth();
+  showToast(currentLang==='en'?'Signed out':'已退出登录');
+  goScreen('s-list');
+}
+function gatePost(){
+  if(!currentUser){ openLogin(); showToast(currentLang==='en'?'Sign in to post a room':'发布房源需要先登录'); return; }
+  goStep(1); goScreen('s-post');
 }
 function showPost(){ gatePost() }
 
@@ -1521,8 +1606,26 @@ function applyLang(){
   });
 
   // Login modal title
-  const loginModalTitle = document.querySelector('#login-modal .modal-title');
+  const loginModalTitle = document.getElementById('login-modal-title');
   if(loginModalTitle) loginModalTitle.textContent = currentLang==='en'?'Sign in to OrangeNest':'登录 OrangeNest';
+  const tabMagic = document.getElementById('tab-magic');
+  if(tabMagic) tabMagic.textContent = currentLang==='en'?'📧 Magic Link':'📧 邮件登录';
+  const tabPwd = document.getElementById('tab-pwd');
+  if(tabPwd) tabPwd.textContent = currentLang==='en'?'🔑 Password':'🔑 密码登录';
+  const magicDesc = document.querySelector('#login-panel-magic .login-desc');
+  if(magicDesc) magicDesc.textContent = currentLang==='en'?'Enter your email and we will send you a sign-in link. No password needed.':'输入邮箱，我们发一个登录链接给你，点击即可登录，无需密码。';
+  const pwdDesc = document.querySelector('#login-panel-pwd .login-desc');
+  if(pwdDesc) pwdDesc.textContent = currentLang==='en'?'Sign in with your password, or sign up automatically.':'有账号直接登录；没有账号填完自动注册。';
+  const btnMagic = document.getElementById('login-btn-magic');
+  if(btnMagic) btnMagic.textContent = currentLang==='en'?'Send sign-in link →':'发送登录链接 →';
+  const btnPwd = document.getElementById('login-btn-pwd');
+  if(btnPwd) btnPwd.textContent = currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
+  const emailMagic = document.getElementById('login-email-magic');
+  if(emailMagic) emailMagic.placeholder = currentLang==='en'?'your@email.com':'your@email.com';
+  const emailPwd = document.getElementById('login-email-pwd');
+  if(emailPwd) emailPwd.placeholder = currentLang==='en'?'your@email.com':'your@email.com';
+  const pwdInput = document.getElementById('login-pwd-input');
+  if(pwdInput) pwdInput.placeholder = currentLang==='en'?'Password (min. 6 characters)':'密码（至少6位）';
 
   // Post screen title
 
