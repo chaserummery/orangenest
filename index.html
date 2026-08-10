@@ -723,8 +723,20 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       </div>
       <div class="ff"><label class="flabel2" id="e-lbl-wechat">微信号</label><input class="fi" id="e-wechat" type="text"/></div>
       <div class="ff"><label class="flabel2" id="e-lbl-phone">电话（选填）</label><input class="fi" id="e-phone" type="text"/></div>
+      <div class="ff">
+        <label class="flabel2" id="e-lbl-photos">现有照片</label>
+        <div id="e-current-photos" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+        <label class="flabel2" id="e-lbl-add-photos" style="margin-top:4px">添加新照片（选填）</label>
+        <div class="upload-zone" onclick="document.getElementById('e-photo-input').click()" style="padding:16px">
+          <div style="font-size:20px;margin-bottom:4px">📷</div>
+          <div style="font-size:12px;color:var(--ink3)" id="e-photo-hint">点击添加照片</div>
+        </div>
+        <input type="file" id="e-photo-input" multiple accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewEditPhotos(this)"/>
+        <div id="e-new-photo-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"></div>
+      </div>
       <input type="hidden" id="e-listing-id"/>
       <input type="hidden" id="e-status"/>
+      <input type="hidden" id="e-existing-photos" value="[]"/>
       <div style="display:flex;gap:8px;margin-top:4px">
         <button onclick="closeEditListing()" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid var(--cream3);background:#fff;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif" id="edit-cancel-btn">取消</button>
         <button onclick="saveEditListing()" id="edit-save-btn" style="flex:2;padding:11px;border-radius:30px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">保存修改</button>
@@ -1388,6 +1400,20 @@ async function openEditListing(id){
   const renewSel = document.getElementById('e-renew');
   renewSel.options[0].text = L?'No renewal':'不续租';
   renewSel.options[1].text = L?'Renewable':'可续租';
+  // Show existing photos with delete option
+  document.getElementById('e-existing-photos').value = JSON.stringify(data.photos||[]);
+  const photoContainer = document.getElementById('e-current-photos');
+  photoContainer.innerHTML = (data.photos||[]).map((url, i) =>
+    `<div style="position:relative;display:inline-block">
+      <img src="${url}" style="width:72px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--cream3)"/>
+      <button onclick="removeEditPhoto(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:700">×</button>
+    </div>`
+  ).join('');
+  document.getElementById('e-new-photo-preview').innerHTML = '';
+  document.getElementById('e-photo-input').value = '';
+  document.getElementById('e-lbl-photos').textContent = currentLang==='en'?'Current Photos':'现有照片';
+  document.getElementById('e-lbl-add-photos').textContent = currentLang==='en'?'Add New Photos (optional)':'添加新照片（选填）';
+  document.getElementById('e-photo-hint').textContent = currentLang==='en'?'Click to add photos':'点击添加照片';
   document.getElementById('edit-modal').classList.add('open');
 }
 
@@ -1395,12 +1421,58 @@ function closeEditListing(){
   document.getElementById('edit-modal').classList.remove('open');
 }
 
+
+function removeEditPhoto(idx){
+  const photos = JSON.parse(document.getElementById('e-existing-photos').value||'[]');
+  photos.splice(idx, 1);
+  document.getElementById('e-existing-photos').value = JSON.stringify(photos);
+  // Re-render
+  const container = document.getElementById('e-current-photos');
+  container.innerHTML = photos.map((url, i) =>
+    `<div style="position:relative;display:inline-block">
+      <img src="${url}" style="width:72px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--cream3)"/>
+      <button onclick="removeEditPhoto(${i})" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:700">×</button>
+    </div>`
+  ).join('');
+}
+
+function previewEditPhotos(inp){
+  const p = document.getElementById('e-new-photo-preview');
+  p.innerHTML = '';
+  Array.from(inp.files).slice(0,6).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      const img=document.createElement('img');
+      img.src=e.target.result;
+      img.style.cssText='width:72px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--cream3)';
+      p.appendChild(img);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
 async function saveEditListing(){
   const id = document.getElementById('e-listing-id').value;
   const btn = document.getElementById('edit-save-btn');
   btn.disabled = true;
   btn.textContent = currentLang==='en'?'Saving…':'保存中…';
+
+  // Upload any new photos
+  let photos = JSON.parse(document.getElementById('e-existing-photos').value||'[]');
+  const newFiles = document.getElementById('e-photo-input').files;
+  for(let i=0; i<newFiles.length; i++){
+    const file = newFiles[i];
+    const ext = file.name.split('.').pop();
+    const path = `${currentUser.id}/${Date.now()}_edit_${i}.${ext}`;
+    const { error: upErr } = await sb.storage.from('listing-photos').upload(path, file, {upsert:true});
+    if(!upErr){
+      const { data: urlData } = sb.storage.from('listing-photos').getPublicUrl(path);
+      photos.push(urlData.publicUrl);
+    }
+  }
+
   const { error } = await sb.from('listings').update({
+    photos: photos,
     address: document.getElementById('e-addr').value.trim(),
     unit_desc: document.getElementById('e-unit').value.trim(),
     avail_from: document.getElementById('e-avail-from').value,
@@ -2022,6 +2094,23 @@ loadListings().then(() => {
 sb.auth.getSession().then(({ data:{ session } }) => {
   currentUser = session?.user || null;
   renderNavAuth();
+  // If user logged in via magic link and hasn't set a password yet
+  if(currentUser) {
+    const pwdSet = localStorage.getItem('on_pwd_set_' + currentUser.id);
+    const provider = currentUser.app_metadata?.provider;
+    // Show prompt if email provider (magic link) and no password set yet
+    if(!pwdSet && provider === 'email') {
+      // Check URL - if we just came back from a magic link, show prompt
+      const hash = window.location.hash;
+      const isFromMagicLink = hash.includes('access_token') || hash.includes('type=magiclink') || 
+                               sessionStorage.getItem('just_signed_in');
+      if(isFromMagicLink || sessionStorage.getItem('show_pwd_prompt')) {
+        sessionStorage.removeItem('show_pwd_prompt');
+        sessionStorage.removeItem('just_signed_in');
+        setTimeout(() => showSetPasswordPrompt(), 800);
+      }
+    }
+  }
 });
 
 // 应用语言
