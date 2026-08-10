@@ -616,28 +616,36 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       <button class="modal-close" onclick="closeLogin()">×</button>
     </div>
     <div class="login-body">
-      <div class="login-tabs">
-        <button class="login-tab active" id="tab-magic" onclick="switchLoginTab('magic')">📧 邮件登录</button>
-        <button class="login-tab" id="tab-pwd" onclick="switchLoginTab('pwd')">🔑 密码登录</button>
-      </div>
-      <div id="login-panel-magic">
-        <div class="login-desc">输入邮箱，我们发一个登录链接，点击即可登录，无需密码。</div>
-        <input class="login-input" id="login-email-magic" type="email" placeholder="your@email.com"/>
-        <button class="login-btn" id="login-btn-magic" onclick="doMagicLink()">发送登录链接 →</button>
-        <div class="login-sent" id="login-sent-magic">
-          <div style="font-size:36px;margin-bottom:10px">📬</div>
-          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">邮件已发送！</div>
-          <div style="font-size:13px;color:var(--ink3);line-height:1.7">去查收邮件，点击「Sign in」链接即可登录。<br>没收到？检查垃圾邮件箱。</div>
-          <button onclick="resetLoginForm()" style="margin-top:12px;font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">重新发送</button>
+
+      <!-- 登录面板 -->
+      <div id="login-panel-signin">
+        <div class="login-desc" id="login-desc-signin">输入邮箱和密码登录</div>
+        <input class="login-input" id="login-email-signin" type="email" placeholder="your@email.com"/>
+        <input class="login-input" id="login-pwd-signin" type="password" placeholder="密码"/>
+        <button class="login-btn" id="login-btn-signin" onclick="doSignIn()">登录 →</button>
+        <div style="text-align:center;margin-top:12px">
+          <span style="font-size:12px;color:var(--ink3)" id="login-no-account">还没有账号？</span>
+          <button onclick="switchToRegister()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;margin-left:4px" id="login-register-link">点此注册</button>
         </div>
       </div>
-      <div id="login-panel-pwd" style="display:none">
-        <div class="login-desc">有账号直接登录；没有账号填完自动注册。</div>
-        <input class="login-input" id="login-email-pwd" type="email" placeholder="your@email.com"/>
-        <input class="login-input" id="login-pwd-input" type="password" placeholder="密码（至少6位）"/>
-        <button class="login-btn" id="login-btn-pwd" onclick="doPwdLogin()">登录 / 注册 →</button>
-        <div style="font-size:11px;color:var(--ink3);text-align:center;margin-top:4px">没有账号？填完直接自动注册</div>
+
+      <!-- 注册面板 -->
+      <div id="login-panel-register" style="display:none">
+        <div class="login-desc" id="login-desc-register">输入邮箱，我们发一封验证邮件给你</div>
+        <input class="login-input" id="login-email-register" type="email" placeholder="your@email.com"/>
+        <button class="login-btn" id="login-btn-register" onclick="doRegister()">发送验证邮件 →</button>
+        <div class="login-sent" id="login-sent-register">
+          <div style="font-size:36px;margin-bottom:10px">📬</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px" id="login-sent-title">邮件已发送！</div>
+          <div style="font-size:13px;color:var(--ink3);line-height:1.7" id="login-sent-desc">去查收邮件，点击链接后回到这里设置密码。<br>没收到？检查垃圾邮件箱。</div>
+          <button onclick="switchToSignIn()" style="margin-top:12px;font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" id="login-back-signin">← 返回登录</button>
+        </div>
+        <div style="text-align:center;margin-top:12px" id="login-have-account-row">
+          <span style="font-size:12px;color:var(--ink3)" id="login-have-account">已有账号？</span>
+          <button onclick="switchToSignIn()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;margin-left:4px" id="login-signin-link">直接登录</button>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -808,72 +816,75 @@ function toggleUserMenu(){ document.getElementById('user-menu').classList.toggle
 function closeUserMenu(){ document.getElementById('user-menu').classList.remove('open') }
 document.addEventListener('click', e => { if(!e.target.closest('.nav-avatar')&&!e.target.closest('.user-menu')) closeUserMenu() });
 
-function switchLoginTab(tab){
-  document.getElementById('tab-magic').classList.toggle('active', tab==='magic');
-  document.getElementById('tab-pwd').classList.toggle('active', tab==='pwd');
-  document.getElementById('login-panel-magic').style.display = tab==='magic'?'':'none';
-  document.getElementById('login-panel-pwd').style.display = tab==='pwd'?'':'none';
+function switchToRegister(){
+  document.getElementById('login-panel-signin').style.display='none';
+  document.getElementById('login-panel-register').style.display='';
+  document.getElementById('login-modal-title').textContent = currentLang==='en'?'Create Account':'注册账号';
+  // Pre-fill email if already typed
+  const email = document.getElementById('login-email-signin').value;
+  if(email) document.getElementById('login-email-register').value = email;
+}
+
+function switchToSignIn(){
+  document.getElementById('login-panel-register').style.display='none';
+  document.getElementById('login-panel-signin').style.display='';
+  document.getElementById('login-modal-title').textContent = currentLang==='en'?'Sign in to OrangeNest':'登录 OrangeNest';
 }
 
 function resetLoginForm(){
-  const sent = document.getElementById('login-sent-magic');
-  const email = document.getElementById('login-email-magic');
-  const btn = document.getElementById('login-btn-magic');
-  if(sent) sent.style.display='none';
-  if(email){ email.style.display=''; email.value=''; }
-  if(btn){ btn.style.display=''; btn.textContent=currentLang==='en'?'Send sign-in link →':'发送登录链接 →'; }
+  document.getElementById('login-sent-register').style.display='none';
+  document.getElementById('login-email-register').style.display='';
+  document.getElementById('login-btn-register').style.display='';
+  document.getElementById('login-have-account-row').style.display='';
+  document.getElementById('login-email-register').value='';
 }
 
-async function doMagicLink(){
-  const email = document.getElementById('login-email-magic').value.trim();
+async function doSignIn(){
+  const email = document.getElementById('login-email-signin').value.trim();
+  const pwd = document.getElementById('login-pwd-signin').value;
   if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
-  const btn = document.getElementById('login-btn-magic');
-  btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
-  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin } });
-  btn.disabled=false;
-  if(error){ btn.textContent=currentLang==='en'?'Send sign-in link →':'发送登录链接 →'; showToast((currentLang==='en'?'Failed: ':'发送失败：')+error.message); return; }
-  document.getElementById('login-email-magic').style.display='none';
-  btn.style.display='none';
-  document.getElementById('login-sent-magic').style.display='block';
-}
-
-async function doPwdLogin(){
-  const email = document.getElementById('login-email-pwd').value.trim();
-  const pwd = document.getElementById('login-pwd-input').value.trim();
-  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
-  if(!pwd||pwd.length<6){ showToast(currentLang==='en'?'Password must be at least 6 characters':'密码至少6位'); return; }
-  const btn = document.getElementById('login-btn-pwd');
+  if(!pwd){ showToast(currentLang==='en'?'Please enter your password':'请输入密码'); return; }
+  const btn = document.getElementById('login-btn-signin');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Signing in…':'登录中…';
-  let { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in →':'登录 →';
   if(error){
-    const isInvalidCreds = error.message.includes('Invalid login') || error.message.includes('invalid_credentials');
-    if(isInvalidCreds){
-      // Try sign up — if email already exists (Magic Link user), tell them to use Magic Link
-      const res = await sb.auth.signUp({ email, password: pwd });
-      if(res.error){
-        btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
-        if(res.error.message.includes('already registered') || res.error.message.includes('already exists')){
-          // Email exists but no password set — guide to magic link
-          showToast(currentLang==='en'?'This email is registered. Use the Magic Link tab to sign in.':'该邮箱已注册，请用「邮件登录」Tab 登录。');
-          switchLoginTab('magic');
-          document.getElementById('login-email-magic').value = email;
-        } else {
-          showToast((currentLang==='en'?'Failed: ':'注册失败：')+res.error.message);
-        }
-        return;
-      }
-      data = res.data;
-      showToast(currentLang==='en'?'✅ Account created!':'✅ 注册成功！');
+    if(error.message.includes('Invalid') || error.message.includes('invalid')){
+      showToast(currentLang==='en'?'Incorrect email or password':'邮箱或密码错误');
     } else {
-      btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
-      showToast((currentLang==='en'?'Sign in failed: ':'登录失败：')+error.message); return;
+      showToast((currentLang==='en'?'Failed: ':'登录失败：')+error.message);
     }
+    return;
   }
-  btn.disabled=false; btn.textContent=currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
-  if(data?.user){ currentUser=data.user; renderNavAuth(); closeLogin(); showToast(currentLang==='en'?'✅ Signed in!':'✅ 登录成功！'); }
+  currentUser = data.user;
+  renderNavAuth();
+  closeLogin();
+  showToast(currentLang==='en'?'✅ Signed in!':'✅ 登录成功！');
 }
 
-async function sendMagicLink(){ doMagicLink(); }
+async function doRegister(){
+  const email = document.getElementById('login-email-register').value.trim();
+  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
+  const btn = document.getElementById('login-btn-register');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options:{ emailRedirectTo: window.location.origin + '?setup_pwd=1' }
+  });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Send verification email →':'发送验证邮件 →';
+  if(error){ showToast((currentLang==='en'?'Failed: ':'发送失败：')+error.message); return; }
+  // Show sent state
+  document.getElementById('login-email-register').style.display='none';
+  document.getElementById('login-btn-register').style.display='none';
+  document.getElementById('login-have-account-row').style.display='none';
+  document.getElementById('login-sent-register').style.display='block';
+}
+
+// Legacy aliases
+async function sendMagicLink(){ doRegister(); }
+function switchLoginTab(){}
+async function doMagicLink(){ doRegister(); }
+async function doPwdLogin(){ doSignIn(); }
 
 // ══ 收藏 ══
 // ══ DATA ══
@@ -1950,24 +1961,35 @@ function applyLang(){
   // Login modal title
   const loginModalTitle = document.getElementById('login-modal-title');
   if(loginModalTitle) loginModalTitle.textContent = currentLang==='en'?'Sign in to OrangeNest':'登录 OrangeNest';
-  const tabMagic = document.getElementById('tab-magic');
-  if(tabMagic) tabMagic.textContent = currentLang==='en'?'📧 Magic Link':'📧 邮件登录';
-  const tabPwd = document.getElementById('tab-pwd');
-  if(tabPwd) tabPwd.textContent = currentLang==='en'?'🔑 Password':'🔑 密码登录';
-  const magicDesc = document.querySelector('#login-panel-magic .login-desc');
-  if(magicDesc) magicDesc.textContent = currentLang==='en'?'Enter your email and we will send you a sign-in link. No password needed.':'输入邮箱，我们发一个登录链接给你，点击即可登录，无需密码。';
-  const pwdDesc = document.querySelector('#login-panel-pwd .login-desc');
-  if(pwdDesc) pwdDesc.textContent = currentLang==='en'?'Sign in with your password, or sign up automatically.':'有账号直接登录；没有账号填完自动注册。';
-  const btnMagic = document.getElementById('login-btn-magic');
-  if(btnMagic) btnMagic.textContent = currentLang==='en'?'Send sign-in link →':'发送登录链接 →';
-  const btnPwd = document.getElementById('login-btn-pwd');
-  if(btnPwd) btnPwd.textContent = currentLang==='en'?'Sign in / Sign up →':'登录 / 注册 →';
-  const emailMagic = document.getElementById('login-email-magic');
-  if(emailMagic) emailMagic.placeholder = currentLang==='en'?'your@email.com':'your@email.com';
-  const emailPwd = document.getElementById('login-email-pwd');
-  if(emailPwd) emailPwd.placeholder = currentLang==='en'?'your@email.com':'your@email.com';
-  const pwdInput = document.getElementById('login-pwd-input');
-  if(pwdInput) pwdInput.placeholder = currentLang==='en'?'Password (min. 6 characters)':'密码（至少6位）';
+  const signinDesc = document.getElementById('login-desc-signin');
+  if(signinDesc) signinDesc.textContent = currentLang==='en'?'Sign in with your email and password':'输入邮箱和密码登录';
+  const signinEmail = document.getElementById('login-email-signin');
+  if(signinEmail) signinEmail.placeholder = 'your@email.com';
+  const signinPwd = document.getElementById('login-pwd-signin');
+  if(signinPwd) signinPwd.placeholder = currentLang==='en'?'Password':'密码';
+  const signinBtn = document.getElementById('login-btn-signin');
+  if(signinBtn) signinBtn.textContent = currentLang==='en'?'Sign in →':'登录 →';
+  const noAcct = document.getElementById('login-no-account');
+  if(noAcct) noAcct.textContent = currentLang==='en'?'No account yet?':'还没有账号？';
+  const regLink = document.getElementById('login-register-link');
+  if(regLink) regLink.textContent = currentLang==='en'?'Register here':'点此注册';
+  const regDesc = document.getElementById('login-desc-register');
+  if(regDesc) regDesc.textContent = currentLang==='en'?'Enter your email to receive a verification link':'输入邮箱，我们发一封验证邮件给你';
+  const regEmail = document.getElementById('login-email-register');
+  if(regEmail) regEmail.placeholder = 'your@email.com';
+  const regBtn = document.getElementById('login-btn-register');
+  if(regBtn) regBtn.textContent = currentLang==='en'?'Send verification email →':'发送验证邮件 →';
+  const sentTitle = document.getElementById('login-sent-title');
+  if(sentTitle) sentTitle.textContent = currentLang==='en'?'Email sent!':'邮件已发送！';
+  const sentDesc = document.getElementById('login-sent-desc');
+  if(sentDesc) sentDesc.textContent = currentLang==='en'?'Check your inbox, click the link, then come back to set your password.':'去查收邮件，点击链接后回到这里设置密码。没收到？检查垃圾邮件箱。';
+  const backSignin = document.getElementById('login-back-signin');
+  if(backSignin) backSignin.textContent = currentLang==='en'?'← Back to sign in':'← 返回登录';
+  const haveAcct = document.getElementById('login-have-account');
+  if(haveAcct) haveAcct.textContent = currentLang==='en'?'Already have an account?':'已有账号？';
+  const signinLink = document.getElementById('login-signin-link');
+  if(signinLink) signinLink.textContent = currentLang==='en'?'Sign in':'直接登录';
+
 
   // Post screen title
 
@@ -2094,21 +2116,15 @@ loadListings().then(() => {
 sb.auth.getSession().then(({ data:{ session } }) => {
   currentUser = session?.user || null;
   renderNavAuth();
-  // If user logged in via magic link and hasn't set a password yet
   if(currentUser) {
     const pwdSet = localStorage.getItem('on_pwd_set_' + currentUser.id);
-    const provider = currentUser.app_metadata?.provider;
-    // Show prompt if email provider (magic link) and no password set yet
-    if(!pwdSet && provider === 'email') {
-      // Check URL - if we just came back from a magic link, show prompt
-      const hash = window.location.hash;
-      const isFromMagicLink = hash.includes('access_token') || hash.includes('type=magiclink') || 
-                               sessionStorage.getItem('just_signed_in');
-      if(isFromMagicLink || sessionStorage.getItem('show_pwd_prompt')) {
-        sessionStorage.removeItem('show_pwd_prompt');
-        sessionStorage.removeItem('just_signed_in');
-        setTimeout(() => showSetPasswordPrompt(), 800);
-      }
+    const params = new URLSearchParams(window.location.search);
+    const setupPwd = params.get('setup_pwd');
+    // Show set-password if came from registration email link
+    if(!pwdSet && (setupPwd === '1' || sessionStorage.getItem('show_pwd_prompt'))) {
+      sessionStorage.removeItem('show_pwd_prompt');
+      history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => showSetPasswordPrompt(), 500);
     }
   }
 });
