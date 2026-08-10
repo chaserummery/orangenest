@@ -691,19 +691,42 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       <span class="modal-title" id="edit-modal-title">编辑房源</span>
       <button class="modal-close" onclick="closeEditListing()">×</button>
     </div>
-    <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
-      <div class="ff"><label class="flabel2">公寓地址</label><input class="fi" id="e-addr" type="text"/></div>
-      <div class="ff"><label class="flabel2">房型描述</label><input class="fi" id="e-unit" type="text"/></div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+      <div class="ff"><label class="flabel2" id="e-lbl-addr">公寓地址</label><input class="fi" id="e-addr" type="text"/></div>
+      <div class="ff"><label class="flabel2" id="e-lbl-unit">房型描述</label><input class="fi" id="e-unit" type="text"/></div>
       <div class="fr2">
-        <div class="ff"><label class="flabel2">可入住</label><input class="fi" id="e-avail-from" type="date"/></div>
-        <div class="ff"><label class="flabel2">到期日期</label><input class="fi" id="e-avail-to" type="date"/></div>
+        <div class="ff"><label class="flabel2" id="e-lbl-from">可入住</label><input class="fi" id="e-avail-from" type="date"/></div>
+        <div class="ff"><label class="flabel2" id="e-lbl-to">到期日期</label><input class="fi" id="e-avail-to" type="date"/></div>
       </div>
-      <div class="ff"><label class="flabel2">月租金（$）</label><input class="fi" id="e-price" type="number"/></div>
-      <div class="ff"><label class="flabel2">微信号</label><input class="fi" id="e-wechat" type="text"/></div>
-      <div class="ff"><label class="flabel2">电话（选填）</label><input class="fi" id="e-phone" type="text"/></div>
+      <div class="fr2">
+        <div class="ff"><label class="flabel2" id="e-lbl-bed">卧室</label><select class="fi" id="e-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧+</option></select></div>
+        <div class="ff"><label class="flabel2" id="e-lbl-bath">卫生间</label><select class="fi" id="e-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
+      </div>
+      <div class="ff"><label class="flabel2" id="e-lbl-price">月租金（$）</label><input class="fi" id="e-price" type="number"/></div>
+      <div class="ff"><label class="flabel2" id="e-lbl-pet">宠物</label>
+        <select class="fi" id="e-pet">
+          <option value="true">🐾 宠物友好</option>
+          <option value="false">🚫 不可带宠物</option>
+        </select>
+      </div>
+      <div class="ff"><label class="flabel2" id="e-lbl-flex">租期</label>
+        <select class="fi" id="e-flexible">
+          <option value="false">固定</option>
+          <option value="true">可商量</option>
+        </select>
+      </div>
+      <div class="ff"><label class="flabel2" id="e-lbl-renew">续租</label>
+        <select class="fi" id="e-renew">
+          <option value="false">不续租</option>
+          <option value="true">可续租</option>
+        </select>
+      </div>
+      <div class="ff"><label class="flabel2" id="e-lbl-wechat">微信号</label><input class="fi" id="e-wechat" type="text"/></div>
+      <div class="ff"><label class="flabel2" id="e-lbl-phone">电话（选填）</label><input class="fi" id="e-phone" type="text"/></div>
       <input type="hidden" id="e-listing-id"/>
-      <div style="display:flex;gap:8px">
-        <button onclick="closeEditListing()" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid var(--cream3);background:#fff;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">取消</button>
+      <input type="hidden" id="e-status"/>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="closeEditListing()" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid var(--cream3);background:#fff;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif" id="edit-cancel-btn">取消</button>
         <button onclick="saveEditListing()" id="edit-save-btn" style="flex:2;padding:11px;border-radius:30px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">保存修改</button>
       </div>
     </div>
@@ -1192,6 +1215,7 @@ async function showMyListings(){
   goScreen('s-mine');
   document.getElementById('mine-list').innerHTML='<div class="loading-state"><div class="loading-spinner"></div></div>';
   // Try owner_id first (new), fallback to owner_uid (old)
+  // Fetch all listings by this user (both active and inactive)
   let { data } = await sb.from('listings').select('*')
     .eq('owner_id', currentUser.id).order('created_at',{ascending:false});
   if(!data || data.length===0){
@@ -1207,24 +1231,55 @@ function renderMyListings(list){
     document.getElementById('mine-list').innerHTML=`<div class="empty-state"><div class="empty-icon">🏠</div><div class="empty-title">${t("mine_empty_title")}</div><div class="empty-sub" style="margin-bottom:16px">${t("mine_empty_sub")}</div><button class="nav-btn nav-btn-fill" style="padding:11px 24px;font-size:14px;border-radius:30px" onclick="gatePost()">${t("mine_post_btn")}</button></div>`;
     return;
   }
-  document.getElementById('mine-list').innerHTML=list.map(r=>`
-    <div class="mine-card">
+  document.getElementById('mine-list').innerHTML=list.map(r=>{
+    const isActive = r.status !== 'inactive';
+    const statusBadge = isActive
+      ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--teal-light);color:var(--teal);text-transform:uppercase;letter-spacing:.5px">${currentLang==='en'?'Active':'上架中'}</span>`
+      : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--cream2);color:var(--ink3);text-transform:uppercase;letter-spacing:.5px">${currentLang==='en'?'Inactive':'已下架'}</span>`;
+    const price = `$${r.price}<span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;color:var(--ink3)">${currentLang==='en'?'/mo':'/月'}</span>`;
+    const layout = currentLang==='en'?`${r.bed} bed / ${r.bath} bath`:`${r.bed}卧${r.bath}卫`;
+    return `
+    <div class="mine-card" style="${!isActive?'opacity:.7':''}">
       <div style="padding:16px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px">
-          <div><div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px">${r.addr}</div><div style="font-size:11px;color:var(--ink3)">${r.unit}</div></div>
-          <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--orange);white-space:nowrap">$${r.price}<span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;color:var(--ink3)">/月</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <div style="font-size:15px;font-weight:700;color:var(--ink)">${r.addr}</div>
+              ${statusBadge}
+            </div>
+            <div style="font-size:11px;color:var(--ink3)">${r.unit}</div>
+          </div>
+          <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--orange);white-space:nowrap">${price}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px">
-          <div style="background:var(--cream);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${t("info_avail_from")}</div><div style="font-size:11px;font-weight:600;color:var(--ink)">${r.availFrom?fmtS(r.availFrom):'—'} → ${r.availTo?fmtS(r.availTo):'—'}</div></div>
-          <div style="background:var(--cream);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${currentLang==="en"?"Layout":"户型"}</div><div style="font-size:11px;font-weight:600;color:var(--ink)">${currentLang==="en"?`${r.bed} bed / ${r.bath} bath`:`${r.bed}卧${r.bath}卫`}</div></div>
+          <div style="background:var(--cream);border-radius:8px;padding:8px 10px">
+            <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${currentLang==='en'?'Dates':'租期'}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--ink)">${r.availFrom?fmtS(r.availFrom):'—'} → ${r.availTo?fmtS(r.availTo):'—'}</div>
+          </div>
+          <div style="background:var(--cream);border-radius:8px;padding:8px 10px">
+            <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${currentLang==='en'?'Layout':'户型'}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--ink)">${layout}</div>
+          </div>
         </div>
-        <div style="display:flex;gap:7px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <span style="font-size:11px;color:var(--ink3);flex:1">${timeAgo(r.createdAt)}</span>
-          <button onclick='openShareFromMine(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="font-size:12px;padding:7px 14px;border-radius:30px;border:2px solid var(--orange);color:var(--orange);background:var(--orange-light);cursor:pointer;font-weight:700;font-family:'DM Sans',sans-serif">📤 分享</button>
-          <button onclick="delListing('${r.id}')" style="font-size:12px;padding:7px 12px;border-radius:30px;border:1.5px solid var(--cream3);color:var(--ink3);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">${t("mine_unpublish")}</button>
+          <button onclick="openEditListing('${r.id}')" style="font-size:12px;padding:6px 12px;border-radius:30px;border:1.5px solid var(--teal);color:var(--teal);background:var(--teal-light);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">${currentLang==='en'?'✏️ Edit':'✏️ 编辑'}</button>
+          ${isActive
+            ? `<button onclick='openShareFromMine(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="font-size:12px;padding:6px 12px;border-radius:30px;border:2px solid var(--orange);color:var(--orange);background:var(--orange-light);cursor:pointer;font-weight:700;font-family:'DM Sans',sans-serif">📤 ${currentLang==='en'?'Share':'分享'}</button>
+               <button onclick="delListing('${r.id}')" style="font-size:12px;padding:6px 12px;border-radius:30px;border:1.5px solid var(--cream3);color:var(--ink3);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">${currentLang==='en'?'Unpublish':'下架'}</button>`
+            : `<button onclick="relistListing('${r.id}')" style="font-size:12px;padding:6px 12px;border-radius:30px;border:1.5px solid var(--teal);color:var(--teal);background:var(--teal-light);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">${currentLang==='en'?'↑ Re-list':'↑ 重新上架'}</button>`
+          }
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+async function relistListing(id){
+  const { error } = await sb.from('listings').update({status:'active'}).eq('id',id);
+  if(error){ showToast(currentLang==='en'?'Failed to re-list':'重新上架失败'); return; }
+  showToast(currentLang==='en'?'✅ Re-listed!':'✅ 已重新上架');
+  showMyListings();
 }
 
 async function delListing(id){
@@ -1292,16 +1347,47 @@ async function doChangePassword(){
 async function openEditListing(id){
   const { data, error } = await sb.from('listings').select('*').eq('id', id).single();
   if(error || !data){ showToast(currentLang==='en'?'Failed to load listing':'加载失败'); return; }
+  const L = currentLang==='en';
   document.getElementById('e-listing-id').value = id;
+  document.getElementById('e-status').value = data.status || 'active';
   document.getElementById('e-addr').value = data.address || '';
   document.getElementById('e-unit').value = data.unit_desc || '';
   document.getElementById('e-avail-from').value = data.avail_from || '';
   document.getElementById('e-avail-to').value = data.avail_to || '';
+  document.getElementById('e-bed').value = data.bed || 1;
+  document.getElementById('e-bath').value = data.bath || 1;
   document.getElementById('e-price').value = data.price || '';
+  document.getElementById('e-pet').value = data.pet ? 'true' : 'false';
+  document.getElementById('e-flexible').value = data.flexible ? 'true' : 'false';
+  document.getElementById('e-renew').value = data.renew ? 'true' : 'false';
   document.getElementById('e-wechat').value = data.wechat || '';
   document.getElementById('e-phone').value = data.phone || '';
-  document.getElementById('edit-modal-title').textContent = currentLang==='en'?'Edit Listing':'编辑房源';
-  document.getElementById('edit-save-btn').textContent = currentLang==='en'?'Save changes':'保存修改';
+  // Update labels
+  document.getElementById('edit-modal-title').textContent = L?'Edit Listing':'编辑房源';
+  document.getElementById('edit-save-btn').textContent = L?'Save changes':'保存修改';
+  document.getElementById('edit-cancel-btn').textContent = L?'Cancel':'取消';
+  document.getElementById('e-lbl-addr').textContent = L?'Address':'公寓地址';
+  document.getElementById('e-lbl-unit').textContent = L?'Description':'房型描述';
+  document.getElementById('e-lbl-from').textContent = L?'Available From':'可入住';
+  document.getElementById('e-lbl-to').textContent = L?'Available Until':'到期日期';
+  document.getElementById('e-lbl-bed').textContent = L?'Bedrooms':'卧室';
+  document.getElementById('e-lbl-bath').textContent = L?'Bathrooms':'卫生间';
+  document.getElementById('e-lbl-price').textContent = L?'Monthly Rent ($)':'月租金（$）';
+  document.getElementById('e-lbl-pet').textContent = L?'Pets':'宠物';
+  document.getElementById('e-lbl-flex').textContent = L?'Lease':'租期';
+  document.getElementById('e-lbl-renew').textContent = L?'Renewal':'续租';
+  document.getElementById('e-lbl-wechat').textContent = L?'WeChat ID':'微信号';
+  document.getElementById('e-lbl-phone').textContent = L?'Phone (optional)':'电话（选填）';
+  // Update select options to match language
+  const petSel = document.getElementById('e-pet');
+  petSel.options[0].text = L?'🐾 Pet Friendly':'🐾 宠物友好';
+  petSel.options[1].text = L?'🚫 No Pets':'🚫 不可带宠物';
+  const flexSel = document.getElementById('e-flexible');
+  flexSel.options[0].text = L?'Fixed':'固定';
+  flexSel.options[1].text = L?'Flexible':'可商量';
+  const renewSel = document.getElementById('e-renew');
+  renewSel.options[0].text = L?'No renewal':'不续租';
+  renewSel.options[1].text = L?'Renewable':'可续租';
   document.getElementById('edit-modal').classList.add('open');
 }
 
@@ -1319,7 +1405,12 @@ async function saveEditListing(){
     unit_desc: document.getElementById('e-unit').value.trim(),
     avail_from: document.getElementById('e-avail-from').value,
     avail_to: document.getElementById('e-avail-to').value,
+    bed: parseInt(document.getElementById('e-bed').value),
+    bath: parseInt(document.getElementById('e-bath').value),
     price: parseFloat(document.getElementById('e-price').value),
+    pet: document.getElementById('e-pet').value === 'true',
+    flexible: document.getElementById('e-flexible').value === 'true',
+    renew: document.getElementById('e-renew').value === 'true',
     wechat: document.getElementById('e-wechat').value.trim(),
     phone: document.getElementById('e-phone').value.trim() || null,
   }).eq('id', id);
@@ -1329,6 +1420,7 @@ async function saveEditListing(){
   showToast(currentLang==='en'?'✅ Saved!':'✅ 已保存');
   closeEditListing();
   showMyListings();
+  loadListings();
 }
 
 // ══ POST ══
