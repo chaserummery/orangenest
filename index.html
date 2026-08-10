@@ -631,14 +631,16 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 
       <!-- 注册面板 -->
       <div id="login-panel-register" style="display:none">
-        <div class="login-desc" id="login-desc-register">输入邮箱，我们发一封验证邮件给你</div>
+        <div class="login-desc" id="login-desc-register">填写邮箱和密码完成注册</div>
         <input class="login-input" id="login-email-register" type="email" placeholder="your@email.com"/>
-        <button class="login-btn" id="login-btn-register" onclick="doRegister()">发送验证邮件 →</button>
+        <input class="login-input" id="login-pwd-register" type="password" placeholder="设置密码（至少6位）"/>
+        <input class="login-input" id="login-pwd-register2" type="password" placeholder="确认密码"/>
+        <button class="login-btn" id="login-btn-register" onclick="doRegister()">注册 →</button>
         <div class="login-sent" id="login-sent-register">
-          <div style="font-size:36px;margin-bottom:10px">📬</div>
-          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px" id="login-sent-title">邮件已发送！</div>
-          <div style="font-size:13px;color:var(--ink3);line-height:1.7" id="login-sent-desc">去查收邮件，点击链接后回到这里设置密码。<br>没收到？检查垃圾邮件箱。</div>
-          <button onclick="switchToSignIn()" style="margin-top:12px;font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" id="login-back-signin">← 返回登录</button>
+          <div style="font-size:36px;margin-bottom:10px">✅</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px" id="login-sent-title">注册成功！</div>
+          <div style="font-size:13px;color:var(--ink3);line-height:1.7" id="login-sent-desc">我们发了一封验证邮件，点击邮件里的链接完成验证后就可以登录了。</div>
+          <button onclick="switchToSignIn()" style="margin-top:12px;font-size:13px;color:#fff;background:var(--orange);border:none;border-radius:30px;padding:10px 24px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" id="login-back-signin">去登录 →</button>
         </div>
         <div style="text-align:center;margin-top:12px" id="login-have-account-row">
           <span style="font-size:12px;color:var(--ink3)" id="login-have-account">已有账号？</span>
@@ -832,11 +834,10 @@ function switchToSignIn(){
 }
 
 function resetLoginForm(){
-  document.getElementById('login-sent-register').style.display='none';
-  document.getElementById('login-email-register').style.display='';
-  document.getElementById('login-btn-register').style.display='';
-  document.getElementById('login-have-account-row').style.display='';
-  document.getElementById('login-email-register').value='';
+  const ids=['login-email-register','login-pwd-register','login-pwd-register2','login-btn-register','login-have-account-row'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el){ el.style.display=''; if(el.tagName==='INPUT') el.value=''; } });
+  const sent=document.getElementById('login-sent-register');
+  if(sent) sent.style.display='none';
 }
 
 async function doSignIn(){
@@ -864,20 +865,43 @@ async function doSignIn(){
 
 async function doRegister(){
   const email = document.getElementById('login-email-register').value.trim();
+  const pwd = document.getElementById('login-pwd-register').value;
+  const pwd2 = document.getElementById('login-pwd-register2').value;
   if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
+  if(pwd.length < 6){ showToast(currentLang==='en'?'Password must be at least 6 characters':'密码至少6位'); return; }
+  if(pwd !== pwd2){ showToast(currentLang==='en'?'Passwords do not match':'两次密码不一致'); return; }
   const btn = document.getElementById('login-btn-register');
-  btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options:{ emailRedirectTo: window.location.origin + '?setup_pwd=1' }
-  });
-  btn.disabled=false; btn.textContent=currentLang==='en'?'Send verification email →':'发送验证邮件 →';
-  if(error){ showToast((currentLang==='en'?'Failed: ':'发送失败：')+error.message); return; }
-  // Show sent state
-  document.getElementById('login-email-register').style.display='none';
-  document.getElementById('login-btn-register').style.display='none';
-  document.getElementById('login-have-account-row').style.display='none';
-  document.getElementById('login-sent-register').style.display='block';
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Registering…':'注册中…';
+  const { data, error } = await sb.auth.signUp({ email, password: pwd });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Register →':'注册 →';
+  if(error){
+    if(error.message.includes('already registered')||error.message.includes('already exists')){
+      showToast(currentLang==='en'?'This email is already registered. Please sign in.':'该邮箱已注册，请直接登录');
+      document.getElementById('login-email-signin').value = email;
+      switchToSignIn();
+    } else {
+      showToast((currentLang==='en'?'Failed: ':'注册失败：')+error.message);
+    }
+    return;
+  }
+  // Supabase requires email confirmation by default
+  // Check if user is immediately active (email confirmation disabled)
+  if(data.user && data.session){
+    // Email confirmation disabled — user is logged in immediately
+    currentUser = data.user;
+    localStorage.setItem('on_pwd_set_' + data.user.id, '1');
+    renderNavAuth();
+    closeLogin();
+    showToast(currentLang==='en'?'✅ Account created! Welcome!':'✅ 注册成功！欢迎使用');
+  } else {
+    // Email confirmation required — show success and prompt to check email
+    document.getElementById('login-email-register').style.display='none';
+    document.getElementById('login-pwd-register').style.display='none';
+    document.getElementById('login-pwd-register2').style.display='none';
+    document.getElementById('login-btn-register').style.display='none';
+    document.getElementById('login-have-account-row').style.display='none';
+    document.getElementById('login-sent-register').style.display='block';
+  }
 }
 
 // Legacy aliases
@@ -1977,8 +2001,12 @@ function applyLang(){
   if(regDesc) regDesc.textContent = currentLang==='en'?'Enter your email to receive a verification link':'输入邮箱，我们发一封验证邮件给你';
   const regEmail = document.getElementById('login-email-register');
   if(regEmail) regEmail.placeholder = 'your@email.com';
+  const regPwd = document.getElementById('login-pwd-register');
+  if(regPwd) regPwd.placeholder = currentLang==='en'?'Set password (min. 6 chars)':'设置密码（至少6位）';
+  const regPwd2 = document.getElementById('login-pwd-register2');
+  if(regPwd2) regPwd2.placeholder = currentLang==='en'?'Confirm password':'确认密码';
   const regBtn = document.getElementById('login-btn-register');
-  if(regBtn) regBtn.textContent = currentLang==='en'?'Send verification email →':'发送验证邮件 →';
+  if(regBtn) regBtn.textContent = currentLang==='en'?'Register →':'注册 →';
   const sentTitle = document.getElementById('login-sent-title');
   if(sentTitle) sentTitle.textContent = currentLang==='en'?'Email sent!':'邮件已发送！';
   const sentDesc = document.getElementById('login-sent-desc');
@@ -2116,17 +2144,7 @@ loadListings().then(() => {
 sb.auth.getSession().then(({ data:{ session } }) => {
   currentUser = session?.user || null;
   renderNavAuth();
-  if(currentUser) {
-    const pwdSet = localStorage.getItem('on_pwd_set_' + currentUser.id);
-    const params = new URLSearchParams(window.location.search);
-    const setupPwd = params.get('setup_pwd');
-    // Show set-password if came from registration email link
-    if(!pwdSet && (setupPwd === '1' || sessionStorage.getItem('show_pwd_prompt'))) {
-      sessionStorage.removeItem('show_pwd_prompt');
-      history.replaceState({}, '', window.location.pathname);
-      setTimeout(() => showSetPasswordPrompt(), 500);
-    }
-  }
+
 });
 
 // 应用语言
