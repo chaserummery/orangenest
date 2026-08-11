@@ -1404,6 +1404,22 @@ function renderMyListings(list){
     `<div style="text-align:center;padding:32px 16px;color:var(--ink3);font-size:13px">${L?'No inactive listings':'暂无下架记录'}</div>`;
 }
 
+async function relistListing(id){
+  const { error } = await sb.from('listings').update({status:'active'}).eq('id',id);
+  if(error){ showToast(currentLang==='en'?'Failed to re-list':'重新上架失败'); return; }
+  showToast(currentLang==='en'?'✅ Re-listed!':'✅ 已重新上架');
+  showMyListings();
+}
+
+async function delListing(id){
+  if(!confirm(currentLang==='en'?'Unpublish this listing?':'确认下架这条房源？')) return;
+  const { error } = await sb.from('listings').update({status:'inactive'}).eq('id',id);
+  if(error){ showToast(currentLang==='en'?'Failed — please try again':'下架失败，请重试'); return; }
+  showToast(currentLang==='en'?'✅ Unpublished':'✅ 已下架');
+  showMyListings();
+  loadListings();
+}
+
 // ══ EDIT LISTING ══
 async function openEditListing(id){
   const { data, error } = await sb.from('listings').select('*').eq('id', id).single();
