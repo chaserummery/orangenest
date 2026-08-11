@@ -1327,7 +1327,8 @@ function copyShareText(){
 async function showMyListings(){
   if(!currentUser){ openLogin(); showToast(currentLang==='en'?'Sign in to view your listings':'查看我的发布需要先登录'); return; }
   goScreen('s-mine');
-  document.getElementById('mine-list').innerHTML='<div class="loading-state"><div class="loading-spinner"></div></div>';
+  const mineActive=document.getElementById('mine-active'); if(mineActive) mineActive.innerHTML='<div class="loading-state"><div class="loading-spinner"></div></div>';
+  const mineInactive=document.getElementById('mine-inactive'); if(mineInactive) mineInactive.innerHTML='';
   // Try owner_id first (new), fallback to owner_uid (old)
   // Fetch all listings by this user (both active and inactive)
   let { data } = await sb.from('listings').select('*')
