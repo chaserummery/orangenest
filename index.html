@@ -597,7 +597,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <div class="ff"><label class="flabel2" id="lbl-renew">续租</label><div class="tgrp"><button class="topt" id="pt-renew-y" onclick="pt('renew','yes')">可续租</button><button class="topt" id="pt-renew-n" onclick="pt('renew','no')">不续租</button></div></div>
         <div class="ff"><label class="flabel2" id="lbl-maxppl">最多入住人数</label><select class="fi" id="f-maxppl"><option value="1">1人</option><option value="2">2人</option><option value="3">3人</option><option value="4">4人+</option></select></div>
         <div class="ff">
-          <label class="flabel2" id="lbl-lifestyle">生活习惯（选填）</label>
+          <label class="flabel2" id="lbl-lifestyle">室友生活习惯（选填，如有室友）</label>
           <div class="tgrp" id="lifestyle-grp">
             <button class="topt" data-life="no_smoke" onclick="togLife(this)">🚭 不抽烟</button>
             <button class="topt" data-life="no_pet" onclick="togLife(this)">🚫 不养宠物</button>
@@ -636,7 +636,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
           <input type="file" id="photo-input" multiple accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewPhotos(this)"/>
           <div id="photo-preview" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px"></div>
         </div>
-        <div class="ff"><label class="flabel2" id="lbl-wechat">微信号 <span class="req">*</span></label><input class="fi" id="f-wechat" type="text" placeholder="你的微信号"/><span class="fhint" id="hint-wechat">租客点「查看微信号」才能看到</span></div>
+        <div class="ff"><label class="flabel2" id="lbl-wechat">微信号 <span class="req">*</span></label><input class="fi" id="f-wechat" type="text" placeholder="微信号 / 手机号 / 其他联系方式"/><span class="fhint" id="hint-wechat">租客点「查看微信号」才能看到</span></div>
         <div class="ff"><label class="flabel2" id="lbl-phone">电话（选填）</label><input class="fi" id="f-phone" type="text" placeholder="如：217-555-0101"/></div>
       </div>
       <div id="upload-progress" style="display:none;padding:0 0 10px">
@@ -1741,9 +1741,9 @@ async function saveEditListing(){
 // ══ POST ══
 async function submitListing(){
   const wechat = document.getElementById('f-wechat').value.trim();
-  const files = document.getElementById('photo-input').files;
+  const files = accumulatedFiles;
   if(!wechat){ showToast(currentLang==='en'?'Please enter your WeChat ID':'请填写微信号'); return; }
-  if(files.length < 2){ showToast(currentLang==='en'?'Please upload at least 2 photos':'请至少上传2张照片'); return; }
+  if(!files || files.length < 2){ showToast(currentLang==='en'?'Please upload at least 2 photos · Suggest: living room, bedroom, bathroom':'请至少上传2张照片 · 建议：客厅、卧室、卫生间'); return; }
   const btn = document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Posting…':'发布中…';
   document.getElementById('upload-progress').style.display='block';
@@ -1799,6 +1799,7 @@ function resetForm(){
   document.getElementById('f-bath').selectedIndex=0;
   document.getElementById('f-maxppl').selectedIndex=0;
   document.getElementById('photo-preview').innerHTML='';
+  accumulatedFiles = [];
   document.getElementById('photo-input').value='';
   Object.keys(formState).forEach(k=>formState[k]=null);
   selectedLifestyle.clear();
@@ -2057,12 +2058,12 @@ const I18N = {
     nav_favs:'❤️ 收藏', nav_mine:'我的发布', nav_post:'发布房源',
     hero_eyebrow:'UIUC 留学生短租平台',
     hero_title:'不只是找房子，<br>是找到你<em>暂时的家</em>',
-    hero_sub:'无中介 · 直接联系房东 · 宠物筛选 · 微信直联<br>让找房这件烦心事，变得像聊天一样简单',
+    hero_sub:'无中介费 · 直接联系房主 · 宠物筛选 · 即时沟通<br>让找房这件烦心事，变得像聊天一样简单',
     hero_cta:'开始找房 →',
     hiw_label:'三步搞定', hiw_title:'OrangeNest 怎么运作？',
     hiw1_num:'Step 01', hiw1_title:'筛选找房', hiw1_sub:'输入租期、预算、宠物需求，系统自动匹配',
     hiw2_num:'Step 02', hiw2_title:'查看详情', hiw2_sub:'真实照片、日历看空闲时间、地图看位置',
-    hiw3_num:'Step 03', hiw3_title:'微信直联', hiw3_sub:'直接加房东微信，无中介，谈好直接入住',
+    hiw3_num:'Step 03', hiw3_title:'直接联系', hiw3_sub:'直接联系房主，无中介费，谈好直接入住',
     f_period:'租期', f_pet:'宠物', f_pet_yes:'🐾 有宠物', f_pet_no:'无宠物',
     f_budget:'预算', f_sort:'排序', f_sort_new:'最新发布', f_sort_asc:'价格↑', f_sort_desc:'价格↓',
     f_more:'＋ 更多筛选', f_less:'－ 收起', f_clear:'✕ 清空',
@@ -2075,7 +2076,7 @@ const I18N = {
     user_mine:'📋 我的发布', user_favs:'❤️ 我的收藏', user_signout:'退出登录',
     empty_title:'暂无符合条件的房源', empty_sub:'试着放宽筛选条件',
     detail_info:'房源信息', detail_cal:'租期日历', detail_loc:'位置', detail_contact:'联系房东',
-    contact_wx:'💬 查看微信号', contact_ph:'📞 查看电话',
+    contact_wx:'💬 查看联系方式', contact_ph:'📞 查看电话号码',
     script_label:'💡 联系话术模板', script_copy:'📋 复制这段话',
     report:'举报虚假信息',
     post_title:'发布房源', post_step1:'基本信息', post_step2:'入住条件', post_step3:'照片联系',
@@ -2092,7 +2093,7 @@ const I18N = {
     lbl_maxppl:'最多入住人数', lbl_note:'其他说明（选填）',
     btn_back2:'← 返回', btn_next2:'下一步：照片联系 →',
     lbl_photos:'上传照片 *', hint_photos:'建议 3–6 张 · JPG/PNG',
-    lbl_wechat:'微信号 *', hint_wechat:'租客点「查看微信号」才能看到',
+    lbl_wechat:'联系方式 *', hint_wechat:'可填微信号、手机号或其他联系方式',
     lbl_phone:'电话（选填）',
     btn_back3:'← 返回', btn_submit:'发布房源 🎉',
     success_title:'房源已发布！',
@@ -2108,7 +2109,7 @@ const I18N = {
     addr_ph:'如：706 S Mathews Ave, Urbana, IL 61801',
     unit_ph:'如：1室1卫 · 独立卫浴 · 全家具',
     note_ph:'如：女生优先 · 含水电网 · 有停车位',
-    wechat_ph:'你的微信号',
+    wechat_ph:'微信号 / 手机号 / 其他联系方式',
     mine_empty_title:'还没有发布', mine_empty_sub:'发布你的房源，让同学找到你',
     mine_post_btn:'发布房源',
     card_vacant:'空置房源', card_female:'有女生同住', card_male:'有男生同住',
@@ -2119,7 +2120,7 @@ const I18N = {
     info_flex_yes:'可商量', info_flex_no:'固定',
     info_renew_yes:'可续租', info_renew_no:'不续租',
     info_vacant:'空置全新', info_posted:'发布时间',
-    contact_wx_label:'微信号', contact_wx_hint:'复制后在微信搜索添加好友',
+    contact_wx_label:'联系方式', contact_wx_hint:'复制联系方式，直接联系房主',
     contact_ph_label:'电话号码', contact_nophone:'房东未留电话，请用微信联系',
     mine_share:'📤 分享', mine_unpublish:'下架',
     mine_posted:'发布于',
@@ -2132,14 +2133,14 @@ const I18N = {
     bath1:'1卫', bath2:'2卫+',
     nav_login:'登录', nav_signout:'退出',
     f_collapse:'－ 收起',
-    pill1:'🏠 个人转租', pill2:'💬 微信直联', pill3:'📅 灵活租期', pill4:'🐾 宠物筛选', pill5:'⚡ 即时入住',
+    pill1:'🏠 个人转租', pill2:'💬 直接联系房主', pill3:'📅 灵活租期', pill4:'🐾 宠物筛选', pill5:'⚡ 即时入住',
     filter_more_ppl:'人数', filter_more_bed:'户型',
   },
   en: {
     nav_favs:'❤️ Saved', nav_mine:'My Posts', nav_post:'Post a Room',
     hero_eyebrow:'UIUC Student Housing Platform',
     hero_title:'Not just a room —<br>find your <em>home away from home</em>',
-    hero_sub:'No fees. No agents. Just students helping students.<br>Find your next sublet near UIUC — or post yours in minutes.',
+    hero_sub:'No fees. No middlemen. Just students helping students.<br>Find your next sublet near UIUC — or post yours in minutes.',
     hero_cta:'Browse Rooms →',
     hiw_label:'How It Works', hiw_title:'3 Simple Steps',
     hiw1_num:'Step 01', hiw1_title:'Filter', hiw1_sub:'Enter your dates, budget, and pet needs',
@@ -2157,7 +2158,7 @@ const I18N = {
     user_mine:'📋 My Listings', user_favs:'❤️ Saved', user_signout:'Sign out',
     empty_title:'No listings match', empty_sub:'Try adjusting your filters',
     detail_info:'Listing Details', detail_cal:'Availability Calendar', detail_loc:'Location', detail_contact:'Contact Landlord',
-    contact_wx:'💬 View WeChat ID', contact_ph:'📞 View Phone',
+    contact_wx:'💬 View Contact Info', contact_ph:'📞 View Phone Number',
     script_label:'💡 Message Template', script_copy:'📋 Copy message',
     report:'Report this listing',
     post_title:'Post a Room', post_step1:'Basic Info', post_step2:'Conditions', post_step3:'Photos & Contact',
@@ -2174,7 +2175,7 @@ const I18N = {
     lbl_maxppl:'Max Occupants', lbl_note:'Additional Notes (optional)',
     btn_back2:'← Back', btn_next2:'Next: Photos & Contact →',
     lbl_photos:'Upload Photos *', hint_photos:'3–6 photos recommended · JPG/PNG',
-    lbl_wechat:'WeChat ID *', hint_wechat:'Only shown when tenant taps "View WeChat"',
+    lbl_wechat:'Contact Info *', hint_wechat:'WeChat ID, phone, or any preferred contact method',
     lbl_phone:'Phone (optional)',
     btn_back3:'← Back', btn_submit:'Post Room 🎉',
     success_title:'Room Posted!',
@@ -2201,7 +2202,7 @@ const I18N = {
     info_flex_yes:'Flexible', info_flex_no:'Fixed',
     info_renew_yes:'Renewable', info_renew_no:'No renewal',
     info_vacant:'Vacant', info_posted:'Posted',
-    contact_wx_label:'WeChat ID', contact_wx_hint:'Copy and search in WeChat to add friend',
+    contact_wx_label:'Contact Info', contact_wx_hint:'Copy and use to contact the landlord directly',
     contact_ph_label:'Phone Number', contact_nophone:'No phone — use WeChat instead',
     mine_share:'📤 Share', mine_unpublish:'Unpublish',
     mine_posted:'Posted',
