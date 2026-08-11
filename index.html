@@ -820,6 +820,12 @@ const formState = { pet: null, occ: null, flex: null, renew: null };
 sb.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
   renderNavAuth();
+  if(event === 'PASSWORD_RECOVERY') {
+    setTimeout(() => showSetPasswordPrompt(), 500);
+  } else if(event === 'SIGNED_IN' && session?.user) {
+    const pwdSet = localStorage.getItem('on_pwd_set_' + session.user.id);
+    if(!pwdSet) sessionStorage.setItem('show_pwd_prompt', '1');
+  }
 });
 
 function renderNavAuth(){
