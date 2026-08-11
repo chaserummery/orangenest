@@ -222,7 +222,7 @@ img{display:block}
 .fstep:last-child::after{display:none}
 .fcard{background:#fff;border:1px solid var(--cream3);border-radius:var(--rl);padding:20px;margin-bottom:14px;display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
 .ff{display:flex;flex-direction:column;gap:5px}
-.flabel2{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px}.flabel2 .req{color:var(--red)}
+.flabel2{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px}.flabel2 .req{color:var(--red);font-size:14px}
 .fi{font-size:14px;padding:10px 12px;border-radius:var(--rs);border:1.5px solid var(--cream3);background:#fff;color:var(--ink);outline:none;width:100%;font-family:'DM Sans',sans-serif;transition:border-color .12s}
 .fi:focus{border-color:var(--orange)}
 textarea.fi{resize:none;height:80px;line-height:1.5}
@@ -307,6 +307,13 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 .lang-switcher{display:flex;align-items:center;background:var(--cream2);border-radius:20px;padding:2px;border:1px solid var(--cream3)}
 .lang-btn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:18px;border:none;background:transparent;color:var(--ink3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;letter-spacing:.3px}
 .lang-btn.active{background:#fff;color:var(--orange);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+.has-tip{position:relative}
+.has-tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1C1510;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;z-index:100;pointer-events:none;font-family:'DM Sans',sans-serif}
+.has-tip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1C1510;z-index:100}
+.pwd-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--cream3);overflow:hidden}
+.pwd-strength-bar{height:100%;border-radius:2px;transition:width .2s,background .2s}
+.pwd-hint{font-size:11px;color:var(--ink3);margin-top:4px}
 @media(max-width:680px){
   #mine-grid{grid-template-columns:1fr!important}
   .hiw-steps{grid-template-columns:1fr;gap:20px}.hiw-arrow{display:none}
@@ -343,7 +350,6 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
   <!-- USER MENU -->
   <div class="user-menu" id="user-menu">
     <div class="user-email" id="user-email-display"></div>
-    <div class="user-menu-item" onclick="showMyListings();closeUserMenu()">📋 我的发布</div>
     <div class="user-menu-item" onclick="openSettings();closeUserMenu()">⚙️ 账号设置</div>
     <div class="user-menu-item danger" onclick="signOut()">退出登录</div>
   </div>
@@ -420,8 +426,32 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         </div>
         <div class="filter-row" style="padding-bottom:2px">
           <span class="flabel">续租</span>
-          <button class="chip" data-g="renew" data-v="yes" onclick="togChip(this)">可续租</button>
-          <button class="chip" data-g="renew" data-v="no" onclick="togChip(this)">不续租</button>
+          <button class="chip" data-g="renew" data-v="yes" onclick="togChip(this)" data-i18n="f_renew_yes">可续租</button>
+          <button class="chip" data-g="renew" data-v="no" onclick="togChip(this)" data-i18n="f_renew_no">不续租</button>
+        </div>
+        <div class="filter-row">
+          <span class="flabel" id="flabel-type">房型</span>
+          <button class="chip" data-g="type" data-v="studio" onclick="togChip(this)">Studio</button>
+          <button class="chip" data-g="type" data-v="1b1b" onclick="togChip(this)">1B/1B</button>
+          <button class="chip" data-g="type" data-v="2b1b" onclick="togChip(this)">2B/1B</button>
+          <button class="chip" data-g="type" data-v="2b2b" onclick="togChip(this)">2B/2B</button>
+          <button class="chip" data-g="type" data-v="3b" onclick="togChip(this)">3B+</button>
+        </div>
+        <div class="filter-row">
+          <span class="flabel" id="flabel-laundry">洗衣</span>
+          <button class="chip" data-g="laundry" data-v="in_unit" onclick="togChip(this)">室内独立</button>
+          <button class="chip" data-g="laundry" data-v="shared" onclick="togChip(this)">公共区域</button>
+        </div>
+        <div class="filter-row">
+          <span class="flabel" id="flabel-parking">车位</span>
+          <button class="chip" data-g="parking" data-v="indoor" onclick="togChip(this)">室内车位</button>
+          <button class="chip" data-g="parking" data-v="outdoor" onclick="togChip(this)">室外车位</button>
+          <button class="chip" data-g="parking" data-v="any" onclick="togChip(this)">有车位</button>
+        </div>
+        <div class="filter-row" style="padding-bottom:4px">
+          <span class="flabel" id="flabel-utilities">水电</span>
+          <button class="chip" data-g="utilities" data-v="included" onclick="togChip(this)">水电网全包</button>
+          <button class="chip" data-g="utilities" data-v="partial" onclick="togChip(this)">部分包含</button>
         </div>
       </div>
       <div class="sort-row">
@@ -456,7 +486,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
     <span class="dnav-title" id="d-title"></span>
     <div class="dnav-actions">
       <button class="nav-btn nav-btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyListingLink()" id="copy-link-btn">🔗 复制链接</button>
-      <button class="nav-btn nav-btn-outline" style="padding:6px 12px;font-size:12px" onclick="openShareDetail()">📤 分享</button>
+      <button class="nav-btn nav-btn-outline" style="padding:6px 12px;font-size:12px" onclick="openShareDetail()" id="detail-share-btn">📤 分享</button>
     </div>
   </nav>
   <div class="gallery">
@@ -481,7 +511,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
           <button class="cal-btn" id="cal-next" onclick="calNav(1)">›</button>
         </div>
       </div>
-      <div class="cal-wds">
+      <div class="cal-wds" id="cal-wds">
         <div class="cal-wd">日</div><div class="cal-wd">一</div><div class="cal-wd">二</div>
         <div class="cal-wd">三</div><div class="cal-wd">四</div><div class="cal-wd">五</div><div class="cal-wd">六</div>
       </div>
@@ -548,18 +578,49 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
           <div class="ff"><label class="flabel2" id="lbl-avail-from">可入住 <span class="req">*</span></label><input class="fi" id="f-avail-from" type="date"/></div>
           <div class="ff"><label class="flabel2" id="lbl-avail-to">到期日期 <span class="req">*</span></label><input class="fi" id="f-avail-to" type="date"/></div>
         </div>
-        <div class="ff"><label class="flabel2" id="lbl-price">月租金（$）<span class="req">*</span></label><input class="fi" id="f-price" type="number" placeholder="850"/><span class="fhint" id="hint-price">填实际转租价格</span></div>
+        <div class="fr2">
+          <div class="ff"><label class="flabel2" id="lbl-orig-price">合同原价（$）</label><input class="fi" id="f-orig-price" type="number" placeholder="1200"/><span class="fhint" id="hint-orig-price">合同上的月租金</span></div>
+          <div class="ff"><label class="flabel2" id="lbl-price">转租价（$）<span class="req">*</span></label><input class="fi" id="f-price" type="number" placeholder="950"/><span class="fhint" id="hint-price">实际收取的金额</span></div>
+        </div>
       </div>
       <div class="fbrow"><button class="fbnext" id="btn-next1" onclick="nextStep1()">下一步：入住条件 →</button></div>
     </div>
     <div class="fp" id="fp2">
       <div class="fcard">
         <div class="ff"><label class="flabel2" id="lbl-pet">宠物 <span class="req">*</span></label><div class="tgrp"><button class="topt" id="pt-cat" onclick="pt('pet','cat')">允许猫咪</button><button class="topt" id="pt-dog" onclick="pt('pet','dog')">允许狗狗</button><button class="topt" id="pt-both" onclick="pt('pet','both')">猫狗都行</button><button class="topt" id="pt-no" onclick="pt('pet','no')">不允许</button></div></div>
-        <div class="ff"><label class="flabel2" id="lbl-occ">房间现状 <span class="req">*</span></label><div class="tgrp"><button class="topt" id="pt-empty" onclick="pt('occ','empty')">空置</button><button class="topt" id="pt-female" onclick="pt('occ','female')">有女生同住</button><button class="topt" id="pt-male" onclick="pt('occ','male')">有男生同住</button></div></div>
+        <div class="ff"><label class="flabel2" id="lbl-occ">室友情况（可多选）</label><div class="tgrp">
+          <button class="topt" id="pt-empty" onclick="pt('occ','empty')">空置无室友</button>
+          <button class="topt" id="pt-female" data-occ="female" onclick="togOcc('female')">有女生同住</button>
+          <button class="topt" id="pt-male" data-occ="male" onclick="togOcc('male')">有男生同住</button>
+        </div></div>
         <div class="ff"><label class="flabel2" id="lbl-flex">租期</label><div class="tgrp"><button class="topt" id="pt-flex-y" onclick="pt('flex','yes')">可以商量</button><button class="topt" id="pt-flex-n" onclick="pt('flex','no')">固定</button></div></div>
         <div class="ff"><label class="flabel2" id="lbl-renew">续租</label><div class="tgrp"><button class="topt" id="pt-renew-y" onclick="pt('renew','yes')">可续租</button><button class="topt" id="pt-renew-n" onclick="pt('renew','no')">不续租</button></div></div>
         <div class="ff"><label class="flabel2" id="lbl-maxppl">最多入住人数</label><select class="fi" id="f-maxppl"><option value="1">1人</option><option value="2">2人</option><option value="3">3人</option><option value="4">4人+</option></select></div>
-        <div class="ff"><label class="flabel2" id="lbl-note">其他说明（选填）</label><textarea class="fi" id="f-note" placeholder="如：女生优先 · 含水电网 · 有停车位"></textarea></div>
+        <div class="ff">
+          <label class="flabel2" id="lbl-lifestyle">生活习惯（选填）</label>
+          <div class="tgrp" id="lifestyle-grp">
+            <button class="topt" data-life="no_smoke" onclick="togLife(this)">🚭 不抽烟</button>
+            <button class="topt" data-life="no_pet" onclick="togLife(this)">🚫 不养宠物</button>
+            <button class="topt" data-life="early_bird" onclick="togLife(this)">🌅 早睡早起</button>
+            <button class="topt" data-life="night_owl" onclick="togLife(this)">🌙 夜猫子</button>
+            <button class="topt" data-life="quiet" onclick="togLife(this)">🤫 安静</button>
+            <button class="topt" data-life="clean" onclick="togLife(this)">✨ 爱干净</button>
+          </div>
+        </div>
+        <div class="ff">
+          <label class="flabel2" id="lbl-amenities">配套设施（选填）</label>
+          <div class="tgrp">
+            <button class="topt" data-amenity="laundry_unit" onclick="togAmenity(this)">🧺 室内洗衣</button>
+            <button class="topt" data-amenity="laundry_shared" onclick="togAmenity(this)">🏠 公共洗衣</button>
+            <button class="topt" data-amenity="parking_indoor" onclick="togAmenity(this)">🚗 室内车位</button>
+            <button class="topt" data-amenity="parking_outdoor" onclick="togAmenity(this)">🅿️ 室外车位</button>
+            <button class="topt" data-amenity="utilities_all" onclick="togAmenity(this)">💡 水电网全包</button>
+            <button class="topt" data-amenity="utilities_partial" onclick="togAmenity(this)">⚡ 部分包含</button>
+            <button class="topt" data-amenity="gym" onclick="togAmenity(this)">🏋️ 健身房</button>
+            <button class="topt" data-amenity="pool" onclick="togAmenity(this)">🏊 泳池</button>
+          </div>
+        </div>
+        <div class="ff"><label class="flabel2" id="lbl-note">其他说明（选填）</label><textarea class="fi" id="f-note" placeholder="如：女生优先 · 有停车位 · 近校车站"></textarea></div>
       </div>
       <div class="fbrow"><button class="fbback" id="btn-back2" onclick="goStep(1)">← 返回</button><button class="fbnext" id="btn-next2" onclick="goStep(3)">下一步：照片联系 →</button></div>
     </div>
@@ -570,7 +631,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
           <div class="upload-zone" onclick="document.getElementById('photo-input').click()">
             <div style="font-size:32px;margin-bottom:8px">📷</div>
             <div style="font-size:13px;font-weight:600;color:var(--ink2)">点击选择照片</div>
-            <div class="fhint" id="hint-photos" style="margin-top:4px">建议 3–6 张 · JPG/PNG</div>
+            <div class="fhint" id="hint-photos" style="margin-top:4px">至少2张 · 建议：客厅、卧室、卫生间、厨房 · JPG/PNG</div>
           </div>
           <input type="file" id="photo-input" multiple accept="image/jpeg,image/png,image/webp" style="display:none" onchange="previewPhotos(this)"/>
           <div id="photo-preview" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px"></div>
@@ -653,7 +714,9 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       <div id="login-panel-register" style="display:none">
         <div class="login-desc" id="login-desc-register">填写邮箱和密码完成注册</div>
         <input class="login-input" id="login-email-register" type="email" placeholder="your@email.com"/>
-        <input class="login-input" id="login-pwd-register" type="password" placeholder="设置密码（至少6位）"/>
+        <input class="login-input" id="login-pwd-register" type="password" placeholder="设置密码（至少6位）" oninput="checkPwdStrength(this.value)"/>
+<div class="pwd-strength"><div class="pwd-strength-bar" id="pwd-strength-bar" style="width:0%"></div></div>
+<div class="pwd-hint" id="pwd-hint-text">密码需至少6位，建议包含字母和数字</div>
         <input class="login-input" id="login-pwd-register2" type="password" placeholder="确认密码"/>
         <button class="login-btn" id="login-btn-register" onclick="doRegister()">注册 →</button>
         <div class="login-sent" id="login-sent-register">
@@ -818,6 +881,37 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer id="site-footer" style="background:#1C1510;color:rgba(255,255,255,.55);padding:48px 32px 32px;margin-top:0">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--orange2);margin-bottom:8px">OrangeNest <span style="font-size:14px;color:rgba(255,255,255,.4);font-family:'DM Sans',sans-serif" id="footer-subtitle">橙舍</span></div>
+        <div style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.5)" id="footer-desc">专为 UIUC 学生打造的短租转租平台<br>无中介 · 直接联系 · 透明信息</div>
+        <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.35)" id="footer-made">Made with ❤️ by a UIUC student</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:14px" id="footer-links-title">Links</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="#" onclick="document.getElementById('filter-wrap').scrollIntoView({behavior:'smooth'});return false;" style="font-size:13px;color:rgba(255,255,255,.55);text-decoration:none" id="footer-browse">找房</a>
+          <a href="#" onclick="gatePost();return false;" style="font-size:13px;color:rgba(255,255,255,.55);text-decoration:none" id="footer-post">发布房源</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:14px" id="footer-contact-title">Contact</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.8">
+          <div id="footer-contact-desc">问题反馈 / 合作咨询</div>
+          <a href="mailto:hello@orangenest.co" style="color:var(--orange2);text-decoration:none">hello@orangenest.co</a>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div style="font-size:11px;color:rgba(255,255,255,.3)" id="footer-copy">© 2026 OrangeNest · orangenest.co</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.3)" id="footer-disclaimer">仅供 UIUC 学生使用 · For UIUC students only</div>
+    </div>
+  </div>
+</footer>
 
 <script>
 // ══ SUPABASE ══
@@ -992,6 +1086,11 @@ function rowToRoom(r){
     photos: (r.photos&&r.photos.length) ? r.photos : ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80'],
     createdAt: r.created_at ? new Date(r.created_at) : new Date(),
     status: r.status || 'active',
+    laundry: r.laundry || '',
+    parking: r.parking || '',
+    utilities: r.utilities || '',
+    origPrice: r.orig_price || null,
+    status: r.status || 'active',
     owner_id: r.owner_id || r.owner_uid || '',
   };
 }
@@ -1030,6 +1129,20 @@ function doFilter(){
     if(sel.ppl&&r.maxPpl<parseInt(sel.ppl)) return false;
     if(sel.pet==='yes'&&!r.pet) return false;
     if(sel.renew==='yes'&&!r.renew) return false;
+    if(sel.type){
+      if(sel.type==='studio'&&!(r.bed===0||r.unit?.toLowerCase().includes('studio'))) return false;
+      if(sel.type==='1b1b'&&!(r.bed===1&&r.bath===1)) return false;
+      if(sel.type==='2b1b'&&!(r.bed===2&&r.bath===1)) return false;
+      if(sel.type==='2b2b'&&!(r.bed===2&&r.bath===2)) return false;
+      if(sel.type==='3b'&&r.bed<3) return false;
+    }
+    if(sel.laundry&&r.laundry&&sel.laundry!==r.laundry) return false;
+    if(sel.parking){
+      if(sel.parking==='any'&&!r.parking) return false;
+      if(sel.parking==='indoor'&&r.parking!=='indoor') return false;
+      if(sel.parking==='outdoor'&&r.parking!=='outdoor') return false;
+    }
+    if(sel.utilities==='included'&&r.utilities!=='included') return false;
     if(sel.budget){ const b=parseInt(sel.budget);
       if(b===500&&r.price>=500) return false;
       if(b===800&&(r.price<500||r.price>800)) return false;
@@ -1076,11 +1189,12 @@ function fmtD(d){
 }
 function fmtS(d){
   if(!d) return '—';
+  const showYear = d.getFullYear() !== TODAY.getFullYear();
   if(currentLang==='en'){
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[d.getMonth()]} ${d.getDate()}`;
+    return showYear ? `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : `${months[d.getMonth()]} ${d.getDate()}`;
   }
-  return `${d.getMonth()+1}月${d.getDate()}日`;
+  return showYear ? `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日` : `${d.getMonth()+1}月${d.getDate()}日`;
 }
 
 // ══ CARDS ══
@@ -1089,14 +1203,17 @@ function cardHTML(r){
     <div class="cphoto">
       <div class="cphoto-in"><img src="${r.photos[0]}" alt="${r.addr}" loading="lazy"/></div>
       <div class="photo-tl">${r.urgent?`<span class="ptag ptag-urgent">${t('card_urgent')}</span>`:''}</div>
-      <div class="photo-tr"><span class="ptag ${r.pet?'ptag-pet':'ptag-nopet'}">${r.pet?t('card_pet'):(currentLang==='en'?'🚫 No pets':'🚫 不可带宠物')}</span></div>
+      <div class="photo-tr"><span class="ptag ${r.pet?'ptag-pet':'ptag-nopet'}">${r.pet?t('card_pet'):(currentLang==='en'?'🚫 Pets not allowed':'🚫 不可带宠物')}</span></div>
       <div class="photo-bl"><span class="ptag ptag-status">${r.newUnit?t('card_vacant'):r.occGender?(currentLang==='en'?(r.occGender==='女'?'Female roommate':'Male roommate'):`有${r.occGender}生同住`):''}</span></div>
       <div class="photo-br"><span class="pcount">📷 ${r.photos.length}</span></div>
     </div>
     <div class="cbody">
       <div class="crow1">
         <div><div class="caddr">${r.addr}</div><div class="cunit">${r.unit}</div></div>
+        <div>
+        ${r.origPrice && r.origPrice > r.price ? `<div style="font-size:11px;color:var(--ink3);text-decoration:line-through;text-align:right">$${r.origPrice}</div>` : ''}
         <div class="cprice">$${r.price}<span>${currentLang==='en'?'/mo':'/月'}</span></div>
+      </div>
       </div>
       <div class="ctags">
         <span class="ctag ctag-gray">📅 ${r.availFrom?fmtS(r.availFrom):'?'} → ${r.availTo?fmtS(r.availTo):'?'}</span>
@@ -1104,6 +1221,9 @@ function cardHTML(r){
         ${r.pet?`<span class="ctag ctag-teal">${t('card_pet')}</span>`:''}
         ${r.flexible?`<span class="ctag ctag-orange">${t('card_flex')}</span>`:''}
         ${r.renew?`<span class="ctag ctag-teal">${t('card_renew')}</span>`:''}
+          ${r.laundry==='in_unit'?`<span class="ctag ctag-gray">${currentLang==='en'?'🧺 In-unit laundry':'🧺 室内洗衣'}</span>`:''}
+          ${r.parking?`<span class="ctag ctag-gray">${currentLang==='en'?'🚗 Parking':'🚗 有车位'}</span>`:''}
+          ${r.utilities==='included'?`<span class="ctag ctag-teal">${currentLang==='en'?'💡 All utilities':'💡 水电网全包'}</span>`:''}
       </div>
       <div class="ctime">${timeAgo(r.createdAt)}</div>
     </div>
@@ -1124,7 +1244,7 @@ function openDetail(id){
   cur = ALL_ROOMS.find(r=>r.id===id) || null;
   if(!cur) return;
   // Update URL for sharing
-  history.pushState({}, '', '?listing='+id);
+  history.pushState({screen:'s-detail', id:id}, '', '?listing='+id);
   slide = 0;
   const sd = cur.occFrom||cur.availFrom||new Date();
   calY = TODAY>=sd&&cur.availTo&&TODAY<=cur.availTo ? TODAY.getFullYear() : sd.getFullYear();
@@ -1239,6 +1359,12 @@ function buildMap(){
 }
 
 function doReveal(type){
+  // Require login to see contact info
+  if(!currentUser){
+    openLogin();
+    showToast(currentLang==='en'?'Sign in to view contact info':'登录后才能查看联系方式');
+    return;
+  }
   if(type==='wx'){
     document.getElementById('rv-wx-val').textContent=cur.wechat;
     document.getElementById('rv-wx').classList.add('show');
@@ -1391,7 +1517,7 @@ function renderMyListings(list){
           ${isActive
             ? `<button onclick='openShareFromMine(${JSON.stringify(r).replace(/'/g,"&#39;")})' style="font-size:11px;padding:5px 10px;border-radius:20px;border:2px solid var(--orange);color:var(--orange);background:var(--orange-light);cursor:pointer;font-weight:700;font-family:'DM Sans',sans-serif">📤</button>
                <button onclick="delListing('${r.id}')" style="font-size:11px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--cream3);color:var(--ink3);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif">${L?'Unpublish':'下架'}</button>`
-            : `<button onclick="relistListing('${r.id}')" style="font-size:11px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--teal);color:var(--teal);background:var(--teal-light);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">${L?'↑ Re-list':'↑ 重新上架'}</button>`
+            : `<button onclick="relistListing('${r.id}')" style="font-size:11px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--teal);color:var(--teal);background:var(--teal-light);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">${L?'↑ Republish':'↑ 重新上架'}</button>`
           }
         </div>
       </div>
@@ -1418,6 +1544,58 @@ async function delListing(id){
   showToast(currentLang==='en'?'✅ Unpublished':'✅ 已下架');
   showMyListings();
   loadListings();
+}
+
+
+// ══ PASSWORD & SETTINGS ══
+function showSetPasswordPrompt(){
+  const L = currentLang==='en';
+  document.getElementById('set-pwd-title').textContent = L?'Set a password':'设置登录密码';
+  document.getElementById('set-pwd-desc').textContent = L
+    ?'Set a password so you can sign in directly next time without waiting for an email.'
+    :'设置一个密码，下次可以直接用邮箱+密码登录，无需等待邮件。';
+  document.getElementById('set-pwd-btn').textContent = L?'Set password':'设置密码';
+  document.getElementById('set-pwd-skip').textContent = L?'Skip':'跳过';
+  document.getElementById('set-pwd-modal').classList.add('open');
+}
+
+async function doSetPassword(){
+  const pwd = document.getElementById('set-pwd-input').value;
+  const confirm = document.getElementById('set-pwd-confirm').value;
+  if(pwd.length < 6){ showToast(currentLang==='en'?'Password must be at least 6 characters':'密码至少6位'); return; }
+  if(pwd !== confirm){ showToast(currentLang==='en'?'Passwords do not match':'两次密码不一致'); return; }
+  const btn = document.getElementById('set-pwd-btn');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Saving…':'保存中…';
+  const { error } = await sb.auth.updateUser({ password: pwd });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Set password':'设置密码';
+  if(error){ showToast((currentLang==='en'?'Failed: ':'失败：')+error.message); return; }
+  document.getElementById('set-pwd-modal').classList.remove('open');
+  if(currentUser) localStorage.setItem('on_pwd_set_'+currentUser.id, '1');
+  showToast(currentLang==='en'?'✅ Password set! Use it next time to sign in.':'✅ 密码设置成功！下次直接用密码登录');
+}
+
+function openSettings(){
+  const L = currentLang==='en';
+  document.getElementById('settings-email').textContent = currentUser?.email || '';
+  document.getElementById('settings-title').textContent = L?'Account Settings':'账号设置';
+  document.getElementById('new-pwd-input').placeholder = L?'New password (min. 6 chars)':'新密码（至少6位）';
+  document.getElementById('new-pwd-confirm').placeholder = L?'Confirm new password':'确认新密码';
+  document.getElementById('change-pwd-btn').textContent = L?'Update password':'更新密码';
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+async function doChangePassword(){
+  const pwd = document.getElementById('new-pwd-input').value;
+  const confirm = document.getElementById('new-pwd-confirm').value;
+  if(pwd.length < 6){ showToast(currentLang==='en'?'Password must be at least 6 characters':'密码至少6位'); return; }
+  if(pwd !== confirm){ showToast(currentLang==='en'?'Passwords do not match':'两次密码不一致'); return; }
+  const btn = document.getElementById('change-pwd-btn');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Updating…':'更新中…';
+  const { error } = await sb.auth.updateUser({ password: pwd });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Update password':'更新密码';
+  if(error){ showToast((currentLang==='en'?'Failed: ':'失败：')+error.message); return; }
+  document.getElementById('settings-modal').classList.remove('open');
+  showToast(currentLang==='en'?'✅ Password updated!':'✅ 密码已更新！');
 }
 
 // ══ EDIT LISTING ══
@@ -1565,7 +1743,7 @@ async function submitListing(){
   const wechat = document.getElementById('f-wechat').value.trim();
   const files = document.getElementById('photo-input').files;
   if(!wechat){ showToast(currentLang==='en'?'Please enter your WeChat ID':'请填写微信号'); return; }
-  if(!files.length){ showToast(currentLang==='en'?'Please upload at least one photo':'请至少上传一张照片'); return; }
+  if(files.length < 2){ showToast(currentLang==='en'?'Please upload at least 2 photos':'请至少上传2张照片'); return; }
   const btn = document.getElementById('submit-btn');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Posting…':'发布中…';
   document.getElementById('upload-progress').style.display='block';
@@ -1597,6 +1775,12 @@ async function submitListing(){
       max_ppl: parseInt(document.getElementById('f-maxppl').value),
       wechat, phone: document.getElementById('f-phone').value.trim()||null,
       photos: photoUrls, status:'active', owner_id: currentUser.id,
+      orig_price: parseFloat(document.getElementById('f-orig-price')?.value)||null,
+      lifestyle: Array.from(selectedLifestyle),
+      laundry: selectedAmenities.has('laundry_unit')?'in_unit':selectedAmenities.has('laundry_shared')?'shared':null,
+      parking: selectedAmenities.has('parking_indoor')?'indoor':selectedAmenities.has('parking_outdoor')?'outdoor':selectedAmenities.has('parking_any')?'any':null,
+      utilities: selectedAmenities.has('utilities_all')?'included':selectedAmenities.has('utilities_partial')?'partial':null,
+      amenities: Array.from(selectedAmenities),
     });
     if(dbErr) throw dbErr;
     document.getElementById('progress-fill').style.width='100%';
@@ -1617,6 +1801,12 @@ function resetForm(){
   document.getElementById('photo-preview').innerHTML='';
   document.getElementById('photo-input').value='';
   Object.keys(formState).forEach(k=>formState[k]=null);
+  selectedLifestyle.clear();
+  selectedAmenities.clear();
+  selectedOcc.clear();
+  document.querySelectorAll('[data-life],[data-amenity]').forEach(e=>e.classList.remove('sy','sn','sb'));
+  const origPriceEl = document.getElementById('f-orig-price');
+  if(origPriceEl) origPriceEl.value='';
   document.querySelectorAll('.topt').forEach(e=>e.classList.remove('sy','sn','sb'));
   const btn=document.getElementById('submit-btn');
   if(btn){ btn.disabled=false; btn.textContent=currentLang==='en'?'Post Room 🎉':'发布房源 🎉'; }
@@ -1653,11 +1843,91 @@ function previewPhotos(inp){
   });
 }
 function pt(g,v){
+  if(g==='occ'&&v==='empty'){
+    selectedOcc.clear();
+    selectedOcc.add('empty');
+    document.querySelectorAll('[onclick^="togOcc"]').forEach(e=>e.classList.remove('sy'));
+    const emptyBtn=document.getElementById('pt-empty');
+    if(emptyBtn){ emptyBtn.classList.remove('sy','sn','sb'); emptyBtn.classList.add('sy'); }
+    return;
+  }
   const map={pet:['pt-cat','pt-dog','pt-both','pt-no'],occ:['pt-empty','pt-female','pt-male'],flex:['pt-flex-y','pt-flex-n'],renew:['pt-renew-y','pt-renew-n']};
   (map[g]||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('sy','sn','sb')});
   const el=document.getElementById(`pt-${v==='yes'?g+'-y':v==='no'?g+'-n':v}`)||document.getElementById(`pt-${v}`);
   if(el)el.classList.add(v==='no'?'sn':g==='occ'?'sb':'sy');
   formState[g]=v;
+}
+
+
+// ── 生活习惯多选 ──
+const selectedLifestyle = new Set();
+const selectedAmenities = new Set();
+const selectedOcc = new Set();
+
+function togLife(btn){
+  const key = btn.dataset.life;
+  if(selectedLifestyle.has(key)){ selectedLifestyle.delete(key); btn.classList.remove('sb'); }
+  else { selectedLifestyle.add(key); btn.classList.add('sb'); }
+}
+
+function togAmenity(btn){
+  const key = btn.dataset.amenity;
+  // Mutually exclusive pairs
+  if(key==='laundry_unit'&&selectedAmenities.has('laundry_shared')){ selectedAmenities.delete('laundry_shared'); document.querySelector('[data-amenity="laundry_shared"]')?.classList.remove('sb'); }
+  if(key==='laundry_shared'&&selectedAmenities.has('laundry_unit')){ selectedAmenities.delete('laundry_unit'); document.querySelector('[data-amenity="laundry_unit"]')?.classList.remove('sb'); }
+  if(key==='utilities_all'&&selectedAmenities.has('utilities_partial')){ selectedAmenities.delete('utilities_partial'); document.querySelector('[data-amenity="utilities_partial"]')?.classList.remove('sb'); }
+  if(key==='utilities_partial'&&selectedAmenities.has('utilities_all')){ selectedAmenities.delete('utilities_all'); document.querySelector('[data-amenity="utilities_all"]')?.classList.remove('sb'); }
+  if(selectedAmenities.has(key)){ selectedAmenities.delete(key); btn.classList.remove('sb'); }
+  else { selectedAmenities.add(key); btn.classList.add('sb'); }
+}
+
+function togOcc(gender){
+  const emptyBtn = document.getElementById('pt-empty');
+  if(selectedOcc.has(gender)){
+    selectedOcc.delete(gender);
+    document.querySelector(`[onclick="togOcc('${gender}')"]`)?.classList.remove('sy');
+  } else {
+    selectedOcc.add(gender);
+    selectedOcc.delete('empty');
+    emptyBtn?.classList.remove('sy');
+    document.querySelector(`[onclick="togOcc('${gender}')"]`)?.classList.add('sy');
+  }
+}
+
+
+function checkPwdStrength(pwd){
+  const bar = document.getElementById('pwd-strength-bar');
+  const hint = document.getElementById('pwd-hint-text');
+  if(!bar) return;
+  let score = 0;
+  if(pwd.length >= 6) score++;
+  if(pwd.length >= 10) score++;
+  if(/[A-Z]/.test(pwd)) score++;
+  if(/[0-9]/.test(pwd)) score++;
+  if(/[^A-Za-z0-9]/.test(pwd)) score++;
+  const colors = ['#DC2626','#F59E0B','#F59E0B','#10B981','#10B981'];
+  const labels = ['太短了','较弱','一般','强','很强'];
+  const labelsEn = ['Too short','Weak','Fair','Strong','Very strong'];
+  bar.style.width = Math.max(10, score*20) + '%';
+  bar.style.background = colors[Math.min(score,4)];
+  if(hint) hint.textContent = currentLang==='en'?labelsEn[Math.min(score,4)]:labels[Math.min(score,4)];
+}
+
+function updateFooterLang(){
+  const L = currentLang==='en';
+  const map = {
+    'footer-subtitle': L?'UIUC Student Housing':'橙舍',
+    'footer-desc': L?'The easiest way to find or post a sublet near UIUC\nNo fees · Direct contact · Transparent info':'专为 UIUC 学生打造的短租转租平台\n无中介 · 直接联系 · 透明信息',
+    'footer-made': L?'Made with ❤️ by a UIUC student':'Made with ❤️ by a UIUC student',
+    'footer-links-title': L?'Links':'链接',
+    'footer-browse': L?'Browse Rooms':'找房',
+    'footer-post': L?'Post a Room':'发布房源',
+    'footer-contact-title': L?'Contact':'联系我们',
+    'footer-contact-desc': L?'Questions & feedback':'问题反馈 / 合作咨询',
+    'footer-copy': L?'© 2026 OrangeNest · orangenest.co':'© 2026 OrangeNest · orangenest.co',
+    'footer-disclaimer': L?'For UIUC students only':'仅供 UIUC 学生使用',
+  };
+  Object.entries(map).forEach(([id,text])=>{ const el=document.getElementById(id); if(el) el.textContent=text; });
 }
 
 // ══ FILTER UI ══
@@ -1688,8 +1958,18 @@ function goScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
-  if(id === 's-list') history.pushState({}, '', window.location.pathname);
+  if(id === 's-list'){
+    history.pushState({screen:'s-list'}, '', window.location.pathname);
+  }
 }
+
+// Handle browser back button and mouse side button
+window.addEventListener('popstate', (e) => {
+  const active = document.querySelector('.screen.active');
+  if(active && active.id !== 's-list'){
+    goScreen('s-list');
+  }
+});
 
 function openLogin(){ 
   document.getElementById('login-modal').classList.add('open'); 
@@ -1856,10 +2136,10 @@ const I18N = {
     filter_more_ppl:'人数', filter_more_bed:'户型',
   },
   en: {
-    nav_favs:'❤️ Saved', nav_mine:'My Listings', nav_post:'Post Room',
-    hero_eyebrow:'UIUC International Student Housing',
+    nav_favs:'❤️ Saved', nav_mine:'My Posts', nav_post:'Post a Room',
+    hero_eyebrow:'UIUC Student Housing Platform',
     hero_title:'Not just a room —<br>find your <em>home away from home</em>',
-    hero_sub:'No agents · Contact landlords directly · Pet filter · WeChat connect<br>Finding a sublet, made as easy as chatting',
+    hero_sub:'No fees. No agents. Just students helping students.<br>Find your next sublet near UIUC — or post yours in minutes.',
     hero_cta:'Browse Rooms →',
     hiw_label:'How It Works', hiw_title:'3 Simple Steps',
     hiw1_num:'Step 01', hiw1_title:'Filter', hiw1_sub:'Enter your dates, budget, and pet needs',
@@ -2121,6 +2401,10 @@ function applyLang(){
   // ── Back buttons ──
   const backBtns = document.querySelectorAll('.btn-back');
   backBtns.forEach(b => b.textContent = t('back'));
+  const detailShareBtn = document.getElementById('detail-share-btn');
+  if(detailShareBtn) detailShareBtn.textContent = currentLang==='en'?'📤 Share':'📤 分享';
+  const copyLinkBtn = document.getElementById('copy-link-btn');
+  if(copyLinkBtn) copyLinkBtn.textContent = currentLang==='en'?'🔗 Copy Link':'🔗 复制链接';
 
   // ── Post form nav ──
   const postNavTitle = document.getElementById('post-nav-title');
@@ -2180,7 +2464,106 @@ function applyLang(){
   renderNavAuth();
   // Re-render cards (dates/timeago/tags update with lang)
   if(ALL_ROOMS.length) doFilter();
+  updateFooterLang();
+  // Calendar weekdays
+  const calWds = document.querySelectorAll('.cal-wd');
+  const wdZh = ['日','一','二','三','四','五','六'];
+  const wdEn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  calWds.forEach((el,i) => { el.textContent = currentLang==='en'?wdEn[i]:wdZh[i]; });
+  // Filter labels for new fields
+  const flLaundry = document.getElementById('flabel-laundry');
+  if(flLaundry) flLaundry.textContent = currentLang==='en'?'Laundry':'洗衣';
+  const flParking = document.getElementById('flabel-parking');
+  if(flParking) flParking.textContent = currentLang==='en'?'Parking':'车位';
+  const flUtilities = document.getElementById('flabel-utilities');
+  if(flUtilities) flUtilities.textContent = currentLang==='en'?'Utilities':'水电';
+  const flType = document.getElementById('flabel-type');
+  if(flType) flType.textContent = currentLang==='en'?'Room Type':'房型';
+  // Laundry/parking/utilities chips
+  document.querySelectorAll('[data-g="laundry"]').forEach(el=>{
+    if(el.dataset.v==='in_unit') el.textContent = currentLang==='en'?'In-unit':'室内独立';
+    if(el.dataset.v==='shared') el.textContent = currentLang==='en'?'Shared':'公共区域';
+  });
+  document.querySelectorAll('[data-g="parking"]').forEach(el=>{
+    if(el.dataset.v==='indoor') el.textContent = currentLang==='en'?'Indoor':'室内车位';
+    if(el.dataset.v==='outdoor') el.textContent = currentLang==='en'?'Outdoor':'室外车位';
+    if(el.dataset.v==='any') el.textContent = currentLang==='en'?'Any parking':'有车位';
+  });
+  document.querySelectorAll('[data-g="utilities"]').forEach(el=>{
+    if(el.dataset.v==='included') el.textContent = currentLang==='en'?'All included':'水电网全包';
+    if(el.dataset.v==='partial') el.textContent = currentLang==='en'?'Partial':'部分包含';
+  });
+  document.querySelectorAll('[data-g="type"]').forEach(el=>{
+    // type chips use same labels in both languages
+  });
+  // Post form new labels
+  const lblLifestyle = document.getElementById('lbl-lifestyle');
+  if(lblLifestyle) lblLifestyle.textContent = currentLang==='en'?'Lifestyle (optional)':'生活习惯（选填）';
+  const lblAmenities = document.getElementById('lbl-amenities');
+  if(lblAmenities) lblAmenities.textContent = currentLang==='en'?'Amenities (optional)':'配套设施（选填）';
+  const lblOrigPrice = document.getElementById('lbl-orig-price');
+  if(lblOrigPrice) lblOrigPrice.textContent = currentLang==='en'?'Original rent ($)':'合同原价（$）';
+  const hintOrigPrice = document.getElementById('hint-orig-price');
+  if(hintOrigPrice) hintOrigPrice.textContent = currentLang==='en'?'Rent on your lease':'合同上的月租金';
+  const hintPrice = document.getElementById('hint-price');
+  if(hintPrice) hintPrice.textContent = currentLang==='en'?'Your asking price':'实际收取的金额';
+  // Lifestyle buttons
+  const lifeMap = {'no_smoke':['🚭 不抽烟','🚭 Non-smoker'],'no_pet':['🚫 不养宠物','🚫 No pets'],'early_bird':['🌅 早睡早起','🌅 Early bird'],'night_owl':['🌙 夜猫子','🌙 Night owl'],'quiet':['🤫 安静','🤫 Quiet'],'clean':['✨ 爱干净','✨ Clean']};
+  document.querySelectorAll('[data-life]').forEach(el=>{
+    const key = el.dataset.life;
+    if(lifeMap[key]) el.textContent = lifeMap[key][currentLang==='en'?1:0];
+  });
+  // Amenity buttons
+  const amenMap = {'laundry_unit':['🧺 室内洗衣','🧺 In-unit laundry'],'laundry_shared':['🏠 公共洗衣','🏠 Shared laundry'],'parking_indoor':['🚗 室内车位','🚗 Indoor parking'],'parking_outdoor':['🅿️ 室外车位','🅿️ Outdoor parking'],'utilities_all':['💡 水电网全包','💡 All utilities'],'utilities_partial':['⚡ 部分包含','⚡ Partial utilities'],'gym':['🏋️ 健身房','🏋️ Gym'],'pool':['🏊 泳池','🏊 Pool']};
+  document.querySelectorAll('[data-amenity]').forEach(el=>{
+    const key = el.dataset.amenity;
+    if(amenMap[key]) el.textContent = amenMap[key][currentLang==='en'?1:0];
+  });
+  // Occ buttons
+  const ptEmpty = document.getElementById('pt-empty');
+  if(ptEmpty) ptEmpty.textContent = currentLang==='en'?'No roommates':'空置无室友';
+  document.querySelectorAll('[data-occ]').forEach(el=>{
+    if(el.dataset.occ==='female') el.textContent = currentLang==='en'?'Female roommate(s)':'有女生同住';
+    if(el.dataset.occ==='male') el.textContent = currentLang==='en'?'Male roommate(s)':'有男生同住';
+  });
+  // Edit modal bed/bath options
+  const eBed = document.getElementById('e-bed');
+  if(eBed){ eBed.options[0].text=t('bed_opt1');eBed.options[1].text=t('bed_opt2');eBed.options[2].text=t('bed_opt3'); }
+  const eBath = document.getElementById('e-bath');
+  if(eBath){ eBath.options[0].text=t('bath_opt1');eBath.options[1].text=t('bath_opt2');eBath.options[2].text=t('bath_opt3'); }
 }
+
+
+// ── 滑动返回 ──
+(function(){
+  let startX = 0, startY = 0;
+  document.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = Math.abs(e.changedTouches[0].clientY - startY);
+    // Right swipe from left edge (swipe back)
+    if(dx > 60 && dy < 50 && startX < 40) {
+      const detail = document.getElementById('s-detail');
+      const mine = document.getElementById('s-mine');
+      const post = document.getElementById('s-post');
+      if(detail && detail.classList.contains('active')) goScreen('s-list');
+      else if(mine && mine.classList.contains('active')) goScreen('s-list');
+      else if(post && post.classList.contains('active')) goScreen('s-list');
+    }
+  }, {passive:true});
+})();
+
+// ══ NOTE: New DB columns needed ══
+// Run in Supabase SQL Editor:
+// alter table public.listings add column if not exists orig_price numeric;
+// alter table public.listings add column if not exists laundry text;
+// alter table public.listings add column if not exists parking text;
+// alter table public.listings add column if not exists utilities text;
+// alter table public.listings add column if not exists lifestyle text[];
+// alter table public.listings add column if not exists amenities text[];
 
 // ══ INIT ══
 loadListings().then(() => {
