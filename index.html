@@ -1089,12 +1089,18 @@ async function doRegister(){
   const { data, error } = await sb.auth.signUp({ email, password: pwd });
   btn.disabled=false; btn.textContent=currentLang==='en'?'Register →':'注册 →';
   if(error){
-    if(error.message.includes('already registered')||error.message.includes('already exists')){
+    if(error.message.includes('already registered')||error.message.includes('already exists')||error.message.includes('User already registered')){
       showToast(currentLang==='en'?'This email is already registered. Please sign in.':'该邮箱已注册，请直接登录');
       document.getElementById('login-email-signin').value = email;
       switchToSignIn();
+    } else if(error.message.includes('sending confirmation')||error.message.includes('sending email')||error.status===500){
+      // Email sending failed but account may have been created - tell user to try signing in
+      showToast(currentLang==='en'?'Account created! Please sign in directly.':'账号已创建！请直接登录');
+      document.getElementById('login-email-signin').value = email;
+      document.getElementById('login-pwd-signin').value = pwd;
+      setTimeout(()=>switchToSignIn(), 1500);
     } else {
-      showToast((currentLang==='en'?'Failed: ':'注册失败：')+error.message);
+      showToast((currentLang==='en'?'Registration failed: ':'注册失败：')+error.message);
     }
     return;
   }
@@ -2080,48 +2086,12 @@ function gatePost(){
 function showPost(){ gatePost() }
 
 
-// ══ 自动翻译（英文模式）══
-const TRANS_CACHE = {};
-
-async function translateText(text){
-  if(!text || currentLang !== 'en') return text;
-  if(TRANS_CACHE[text]) return TRANS_CACHE[text];
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:200,
-        messages:[{role:'user', content:`Translate this Chinese real estate text to English. Return ONLY the translation, no explanation, no quotes:\n${text}`}]
-      })
-    });
-    const data = await res.json();
-    const translated = data.content?.[0]?.text?.trim() || text;
-    TRANS_CACHE[text] = translated;
-    return translated;
-  } catch(e){ return text; }
-}
-
-async function translateRoom(r){
-  if(currentLang !== 'en') return r;
-  const [unit, occGender] = await Promise.all([
-    translateText(r.unit),
-    r.occGender ? translateText(r.occGender+'生同住') : Promise.resolve(''),
-  ]);
-  return { ...r, unit, occGender: occGender.replace('生同住','').replace('Female roommate','Female').replace('Male roommate','Male') };
-}
-
-async function renderCardsWithTranslation(list){
-  if(currentLang !== 'en'){ renderCards(list); return; }
-  // show loading state first
-  const g = document.getElementById('grid');
-  if(!list||!list.length){ renderCards(list); return; }
-  // render in Chinese first, then translate
+// ══ 英文模式房源内容处理 ══
+// (Browser-side Claude API calls are blocked by CORS — using static display)
+function renderCardsWithTranslation(list){
+  // In EN mode, show original content (addresses are already in English)
+  // Chinese unit descriptions are shown as-is
   renderCards(list);
-  // translate in background, update cards
-  const translated = await Promise.all(list.map(r => translateRoom(r)));
-  renderCards(translated);
 }
 
 // ══ I18N ══
