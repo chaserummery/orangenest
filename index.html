@@ -1149,22 +1149,35 @@ async function doVerifyOTP(){
       digits[0]?.focus();
       return;
     }
-    // 验证通过 — 用 Supabase signUp 创建账号（或已存在则跳到密码步骤）
-    const { data, error } = await sb.auth.signUp({ email, password: 'OTP_VERIFIED_'+Date.now() });
-    if(error && !error.message.includes('already')){
-      btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
-      showToast((currentLang==='en'?'Error: ':'错误：')+error.message); return;
-    }
-    // 如果已存在账号，尝试发 magic link 让用户登录
-    if(error && error.message.includes('already')){
-      const { error: mlErr } = await sb.auth.signInWithOtp({ email, options:{shouldCreateUser:false} });
+    // 验证通过 — 用密码注册/登录（用OTP作为临时密码确保能立即登录）
+    const tempPwd = 'ONest_' + otp + '_' + Date.now();
+    // 先尝试注册
+    const { data: signUpData, error: signUpErr } = await sb.auth.signUp({ email, password: tempPwd });
+    if(signUpErr && (signUpErr.message.includes('already') || signUpErr.message.includes('registered'))){
+      // 已有账号 — 发 magic link
+      await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: false } });
       btn.disabled=false;
       document.getElementById('reg-step-otp').style.display='none';
-      document.getElementById('reg-step-pwd').style.display='none';
-      showToast(currentLang==='en'?'Account exists — check email for sign in link':'该邮箱已注册，登录链接已发至邮箱');
+      document.getElementById('reg-step-email').style.display='';
+      closeLogin();
+      showToast(currentLang==='en'?'This email is registered — sign in link sent to your inbox':'该邮箱已注册，登录链接已发至邮箱');
       return;
     }
-    if(data.user) currentUser = data.user;
+    if(signUpErr){ 
+      btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
+      showToast((currentLang==='en'?'Error: ':'错误：')+signUpErr.message); return; 
+    }
+    // 注册成功，立即登录
+    const { data: signInData, error: signInErr } = await sb.auth.signInWithPassword({ email, password: tempPwd });
+    if(signInErr){
+      btn.disabled=false;
+      // session创建失败，发magic link兜底
+      await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: false } });
+      closeLogin();
+      showToast(currentLang==='en'?'✅ Account created! Check email to sign in.':'✅ 账号已创建！请查收邮件完成登录');
+      return;
+    }
+    currentUser = signInData.user;
     renderNavAuth();
     btn.disabled=false;
     // 显示设置密码步骤
