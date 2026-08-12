@@ -704,7 +704,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <input class="login-input" id="login-email-signin" type="email" placeholder="your@email.com"/>
         <div style="position:relative">
         <input class="login-input" id="login-pwd-signin" type="password" placeholder="密码" style="padding-right:44px"/>
-        <button onclick="togglePwdVis('login-pwd-signin','eye-signin')" id="eye-signin" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3)">👁</button>
+        <button onclick="togglePwdVis('login-pwd-signin','eye-signin')" id="eye-signin" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);display:flex;align-items:center;padding:0"><svg id="eye-signin-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
         <button class="login-btn" id="login-btn-signin" onclick="doSignIn()">登录 →</button>
         <div style="text-align:center;margin-top:8px">
@@ -718,29 +718,63 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 
       <!-- 注册面板 -->
       <div id="login-panel-register" style="display:none">
-        <div class="login-desc" id="login-desc-register">填写邮箱和密码完成注册</div>
-        <input class="login-input" id="login-email-register" type="email" placeholder="your@email.com"/>
-        <div style="position:relative">
-        <input class="login-input" id="login-pwd-register" type="password" placeholder="设置密码（至少6位）" oninput="checkPwdStrength(this.value)" style="padding-right:44px"/>
-        <button onclick="togglePwdVis('login-pwd-register','eye-reg')" id="eye-reg" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3)">👁</button>
-      </div>
-<div class="pwd-strength"><div class="pwd-strength-bar" id="pwd-strength-bar" style="width:0%"></div></div>
-<div class="pwd-hint" id="pwd-hint-text">密码需至少6位，建议包含字母和数字</div>
-        <div style="position:relative">
-        <input class="login-input" id="login-pwd-register2" type="password" placeholder="确认密码" style="padding-right:44px"/>
-        <button onclick="togglePwdVis('login-pwd-register2','eye-reg2')" id="eye-reg2" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3)">👁</button>
-      </div>
-        <button class="login-btn" id="login-btn-register" onclick="doRegister()">注册 →</button>
-        <div class="login-sent" id="login-sent-register">
-          <div style="font-size:36px;margin-bottom:10px">✅</div>
-          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px" id="login-sent-title">注册成功！</div>
-          <div style="font-size:13px;color:var(--ink3);line-height:1.7" id="login-sent-desc">我们发了一封验证邮件，点击邮件里的链接完成验证后就可以登录了。</div>
-          <button onclick="switchToSignIn()" style="margin-top:12px;font-size:13px;color:#fff;background:var(--orange);border:none;border-radius:30px;padding:10px 24px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" id="login-back-signin">去登录 →</button>
+
+        <!-- Step 1: 输入邮箱 -->
+        <div id="reg-step-email">
+          <div class="login-desc" id="login-desc-register">输入邮箱，我们发一封验证码邮件给你</div>
+          <input class="login-input" id="login-email-register" type="email" placeholder="your@email.com"/>
+          <button class="login-btn" id="login-btn-register" onclick="doRegister()">发送验证码 →</button>
+          <div style="text-align:center;margin-top:12px" id="login-have-account-row">
+            <span style="font-size:12px;color:var(--ink3)" id="login-have-account">已有账号？</span>
+            <button onclick="switchToSignIn()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;margin-left:4px" id="login-signin-link">直接登录</button>
+          </div>
         </div>
-        <div style="text-align:center;margin-top:12px" id="login-have-account-row">
-          <span style="font-size:12px;color:var(--ink3)" id="login-have-account">已有账号？</span>
-          <button onclick="switchToSignIn()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;margin-left:4px" id="login-signin-link">直接登录</button>
+
+        <!-- Step 2: 输入验证码 -->
+        <div id="reg-step-otp" style="display:none">
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="font-size:32px;margin-bottom:8px">📬</div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">验证码已发送</div>
+            <div style="font-size:12px;color:var(--ink3)" id="otp-sent-to">请查收邮件中的6位验证码</div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+            <input class="otp-digit login-input" type="text" maxlength="1" inputmode="numeric" style="width:44px;text-align:center;padding:10px 0;font-size:20px;font-weight:700" oninput="otpInput(this)" onkeydown="otpKey(event,this)"/>
+            <input class="otp-digit login-input" type="text" maxlength="1" inputmode="numeric" style="width:44px;text-align:center;padding:10px 0;font-size:20px;font-weight:700" oninput="otpInput(this)" onkeydown="otpKey(event,this)"/>
+            <input class="otp-digit login-input" type="text" maxlength="1" inputmode="numeric" style="width:44px;text-align:center;padding:10px 0;font-size:20px;font-weight:700" oninput="otpInput(this)" onkeydown="otpKey(event,this)"/>
+            <input class="otp-digit login-input" type="text" maxlength="1" inputmode="numeric" style="width:44px;text-align:center;padding:10px 0;font-size:20px;font-weight:700" oninput="otpInput(this)" onkeydown="otpKey(event,this)"/>
+            <input class="otp-digit login-input" type="text" maxlength="1" inputmode="numeric" style="width:44px;text-align:center;padding:10px 0;font-size:20px;font-weight:700" oninput="otpInput(this)" onkeydown="otpKey(event,this)"/>
+            <input class="otp-digit login-input" type="text" maxlength="1" inputmode="numeric" style="width:44px;text-align:center;padding:10px 0;font-size:20px;font-weight:700" oninput="otpInput(this)" onkeydown="otpKey(event,this)"/>
+          </div>
+          <button class="login-btn" id="verify-otp-btn" onclick="doVerifyOTP()">验证 →</button>
+          <div style="text-align:center;margin-top:10px">
+            <button id="resend-btn" onclick="doResendOTP()" style="font-size:12px;color:var(--orange);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">重新发送</button>
+          </div>
         </div>
+
+        <!-- Step 3: 设置密码 -->
+        <div id="reg-step-pwd" style="display:none">
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="font-size:32px;margin-bottom:8px">✅</div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">验证成功！</div>
+            <div style="font-size:12px;color:var(--ink3)">设置密码，下次直接登录</div>
+          </div>
+          <div style="position:relative">
+            <input class="login-input" id="login-pwd-register" type="password" placeholder="设置密码（至少6位）" oninput="checkPwdStrength(this.value)" style="padding-right:44px"/>
+            <button onclick="togglePwdVis('login-pwd-register','eye-reg')" id="eye-reg" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);display:flex;align-items:center;padding:0"><svg id="eye-reg-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <div class="pwd-strength"><div class="pwd-strength-bar" id="pwd-strength-bar" style="width:0%"></div></div>
+          <div class="pwd-hint" id="pwd-hint-text">密码需至少6位，建议包含字母和数字</div>
+          <div style="position:relative">
+            <input class="login-input" id="login-pwd-register2" type="password" placeholder="确认密码" style="padding-right:44px"/>
+            <button onclick="togglePwdVis('login-pwd-register2','eye-reg2')" id="eye-reg2" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);display:flex;align-items:center;padding:0"><svg id="eye-reg2-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <button class="login-btn" id="set-reg-pwd-btn" onclick="doSetRegPassword()">完成注册 →</button>
+          <button onclick="skipRegPassword()" style="width:100%;margin-top:8px;padding:10px;border-radius:30px;border:1.5px solid var(--cream3);background:#fff;color:var(--ink3);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">跳过，稍后设置</button>
+        </div>
+
+        <!-- hidden compat -->
+        <div id="login-sent-register" style="display:none" data-email=""></div>
+        <div id="login-back-signin" style="display:none"></div>
       </div>
 
       <!-- 忘记密码面板 -->
@@ -996,10 +1030,13 @@ async function doForgotPassword(){
 
 function togglePwdVis(inputId, btnId){
   const inp = document.getElementById(inputId);
-  const btn = document.getElementById(btnId);
   if(!inp) return;
-  inp.type = inp.type==='password' ? 'text' : 'password';
-  if(btn) btn.textContent = inp.type==='password' ? '👁' : '🙈';
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  const icon = document.getElementById(btnId + '-icon');
+  if(icon) icon.innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
 let resendCountdown = null;
@@ -1025,6 +1062,10 @@ function switchToRegister(){
   document.getElementById('login-panel-signin').style.display='none';
   document.getElementById('login-panel-register').style.display='';
   document.getElementById('login-modal-title').textContent = currentLang==='en'?'Create Account':'注册账号';
+  // Reset to step 1
+  document.getElementById('reg-step-email').style.display='';
+  document.getElementById('reg-step-otp').style.display='none';
+  document.getElementById('reg-step-pwd').style.display='none';
   // Pre-fill email if already typed
   const email = document.getElementById('login-email-signin').value;
   if(email) document.getElementById('login-email-register').value = email;
@@ -1087,41 +1128,68 @@ function otpKey(e, el){
 }
 
 async function doVerifyOTP(){
-  const email = document.getElementById('login-sent-register').dataset.email || window._pendingRegisterEmail;
+  const email = window._pendingRegisterEmail;
   const digits = Array.from(document.querySelectorAll('.otp-digit'));
-  const token = digits.map(d=>d.value).join('');
-  if(token.length < 6){ showToast(currentLang==='en'?'Please enter the 6-digit code':'请输入6位验证码'); return; }
+  const otp = digits.map(d=>d.value).join('');
+  if(otp.length < 6){ showToast(currentLang==='en'?'Please enter the 6-digit code':'请输入6位验证码'); return; }
   const btn = document.getElementById('verify-otp-btn');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Verifying…':'验证中…';
-  const { data, error } = await sb.auth.verifyOtp({ email, token, type:'email' });
-  if(error){
+  try {
+    const res = await fetch('https://yrjagmymnsnxxexezyuf.supabase.co/functions/v1/verify-otp', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, otp })
+    });
+    const json = await res.json();
+    if(!json.valid){
+      btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
+      showToast(currentLang==='en'?'Incorrect or expired code':'验证码错误或已过期');
+      digits.forEach(d=>{ d.value=''; d.style.borderColor='var(--red)'; });
+      setTimeout(()=>digits.forEach(d=>d.style.borderColor='var(--cream3)'), 1500);
+      digits[0]?.focus();
+      return;
+    }
+    // 验证通过 — 用 Supabase signUp 创建账号（或已存在则跳到密码步骤）
+    const { data, error } = await sb.auth.signUp({ email, password: 'OTP_VERIFIED_'+Date.now() });
+    if(error && !error.message.includes('already')){
+      btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
+      showToast((currentLang==='en'?'Error: ':'错误：')+error.message); return;
+    }
+    // 如果已存在账号，尝试发 magic link 让用户登录
+    if(error && error.message.includes('already')){
+      const { error: mlErr } = await sb.auth.signInWithOtp({ email, options:{shouldCreateUser:false} });
+      btn.disabled=false;
+      document.getElementById('reg-step-otp').style.display='none';
+      document.getElementById('reg-step-pwd').style.display='none';
+      showToast(currentLang==='en'?'Account exists — check email for sign in link':'该邮箱已注册，登录链接已发至邮箱');
+      return;
+    }
+    if(data.user) currentUser = data.user;
+    renderNavAuth();
+    btn.disabled=false;
+    // 显示设置密码步骤
+    document.getElementById('reg-step-otp').style.display='none';
+    document.getElementById('reg-step-pwd').style.display='';
+    document.getElementById('login-modal-title').textContent = currentLang==='en'?'Set a Password':'设置密码';
+  } catch(e){
     btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
-    showToast(currentLang==='en'?'Incorrect code, please try again':'验证码错误，请重试');
-    digits.forEach(d=>{ d.value=''; d.style.borderColor='var(--red)'; });
-    setTimeout(()=>digits.forEach(d=>d.style.borderColor='var(--cream3)'), 1500);
-    digits[0]?.focus();
-    return;
+    showToast(currentLang==='en'?'Network error':'网络错误');
   }
-  // OTP verified - now set password if pending
-  if(window._pendingRegisterPwd && data.user){
-    await sb.auth.updateUser({ password: window._pendingRegisterPwd });
-    localStorage.setItem('on_pwd_set_' + data.user.id, '1');
-    window._pendingRegisterPwd = null;
-  }
-  currentUser = data.user;
-  renderNavAuth();
-  closeLogin();
-  showToast(currentLang==='en'?'✅ Account created! Welcome!':'✅ 注册成功！欢迎使用');
 }
 
 async function doResendOTP(){
-  const email = document.getElementById('login-sent-register').dataset.email || window._pendingRegisterEmail;
+  const email = window._pendingRegisterEmail;
   if(!email) return;
-  await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: true } });
-  document.querySelectorAll('.otp-digit').forEach(d=>d.value='');
-  document.querySelector('.otp-digit')?.focus();
-  startResendCountdown();
-  showToast(currentLang==='en'?'New code sent!':'新验证码已发送！');
+  try {
+    await fetch('https://yrjagmymnsnxxexezyuf.supabase.co/functions/v1/send-otp', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    document.querySelectorAll('.otp-digit').forEach(d=>d.value='');
+    document.querySelector('.otp-digit')?.focus();
+    startResendCountdown();
+    showToast(currentLang==='en'?'New code sent!':'新验证码已发送！');
+  } catch(e){ showToast(currentLang==='en'?'Failed to resend':'发送失败'); }
 }
 
 async function doResendRegister(){
@@ -1138,50 +1206,48 @@ async function doResendRegister(){
 
 async function doRegister(){
   const email = document.getElementById('login-email-register').value.trim();
+  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
+  const btn = document.getElementById('login-btn-register');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
+  try {
+    const res = await fetch('https://yrjagmymnsnxxexezyuf.supabase.co/functions/v1/send-otp', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const json = await res.json();
+    btn.disabled=false; btn.textContent=currentLang==='en'?'Send Code →':'发送验证码 →';
+    if(!res.ok){ showToast((currentLang==='en'?'Failed: ':'发送失败：')+(json.detail||json.error||'')); return; }
+    window._pendingRegisterEmail = email;
+    document.getElementById('otp-sent-to').textContent = currentLang==='en'?`Code sent to ${email}`:`验证码已发至 ${email}`;
+    document.getElementById('reg-step-email').style.display='none';
+    document.getElementById('reg-step-otp').style.display='';
+    document.querySelector('.otp-digit')?.focus();
+    startResendCountdown();
+  } catch(e){
+    btn.disabled=false; btn.textContent=currentLang==='en'?'Send Code →':'发送验证码 →';
+    showToast(currentLang==='en'?'Network error, please try again':'网络错误，请重试');
+  }
+}
+
+async function doSetRegPassword(){
   const pwd = document.getElementById('login-pwd-register').value;
   const pwd2 = document.getElementById('login-pwd-register2').value;
-  if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
   if(pwd.length < 6){ showToast(currentLang==='en'?'Password must be at least 6 characters':'密码至少6位'); return; }
   if(pwd !== pwd2){ showToast(currentLang==='en'?'Passwords do not match':'两次密码不一致'); return; }
-  const btn = document.getElementById('login-btn-register');
-  btn.disabled=true; btn.textContent=currentLang==='en'?'Registering…':'注册中…';
-  const { data, error } = await sb.auth.signUp({ email, password: pwd });
-  btn.disabled=false; btn.textContent=currentLang==='en'?'Register →':'注册 →';
-  if(error){
-    if(error.message.includes('already registered')||error.message.includes('already exists')||error.message.includes('User already registered')){
-      showToast(currentLang==='en'?'This email is already registered. Please sign in.':'该邮箱已注册，请直接登录');
-      document.getElementById('login-email-signin').value = email;
-      switchToSignIn();
-    } else if(error.message.includes('sending confirmation')||error.message.includes('sending email')||error.status===500){
-      // Email sending failed but account may have been created - tell user to try signing in
-      showToast(currentLang==='en'?'Account created! Please sign in directly.':'账号已创建！请直接登录');
-      document.getElementById('login-email-signin').value = email;
-      document.getElementById('login-pwd-signin').value = pwd;
-      setTimeout(()=>switchToSignIn(), 1500);
-    } else {
-      showToast((currentLang==='en'?'Registration failed: ':'注册失败：')+error.message);
-    }
-    return;
-  }
-  // Supabase requires email confirmation by default
-  // Check if user is immediately active (email confirmation disabled)
-  if(data.user && data.session){
-    // Email confirmation disabled — user is logged in immediately
-    currentUser = data.user;
-    localStorage.setItem('on_pwd_set_' + data.user.id, '1');
-    renderNavAuth();
-    closeLogin();
-    showToast(currentLang==='en'?'✅ Account created! Welcome!':'✅ 注册成功！欢迎使用');
-  } else {
-    // Email confirmation required — show success and prompt to check email
-    document.getElementById('login-sent-register').dataset.email = email;
-  document.getElementById('login-email-register').style.display='none';
-    document.getElementById('login-pwd-register').style.display='none';
-    document.getElementById('login-pwd-register2').style.display='none';
-    document.getElementById('login-btn-register').style.display='none';
-    document.getElementById('login-have-account-row').style.display='none';
-    document.getElementById('login-sent-register').style.display='block';
-  }
+  const btn = document.getElementById('set-reg-pwd-btn');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Saving…':'保存中…';
+  const { error } = await sb.auth.updateUser({ password: pwd });
+  btn.disabled=false; btn.textContent=currentLang==='en'?'Complete →':'完成注册 →';
+  if(error){ showToast((currentLang==='en'?'Failed: ':'失败：')+error.message); return; }
+  if(currentUser) localStorage.setItem('on_pwd_set_'+currentUser.id,'1');
+  closeLogin();
+  showToast(currentLang==='en'?'✅ All set! Welcome!':'✅ 注册完成！欢迎使用');
+}
+
+function skipRegPassword(){
+  closeLogin();
+  showToast(currentLang==='en'?'✅ Welcome! You can set a password in Account Settings.':'✅ 欢迎！可在账号设置中添加密码');
 }
 
 // Legacy aliases
@@ -2146,12 +2212,14 @@ function closeLogin(){
   const es=document.getElementById('login-email-signin'); if(es)es.value='';
   const ps=document.getElementById('login-pwd-signin'); if(ps)ps.value='';
   // Reset register fields
-  const er=document.getElementById('login-email-register'); if(er){er.value='';er.style.display='';}
-  const pr=document.getElementById('login-pwd-register'); if(pr){pr.value='';pr.style.display='';}
-  const pr2=document.getElementById('login-pwd-register2'); if(pr2){pr2.value='';pr2.style.display='';}
-  const br=document.getElementById('login-btn-register'); if(br)br.style.display='';
-  const hr=document.getElementById('login-have-account-row'); if(hr)hr.style.display='';
-  const sr=document.getElementById('login-sent-register'); if(sr)sr.style.display='none';
+  const er=document.getElementById('login-email-register'); if(er)er.value='';
+  const pr=document.getElementById('login-pwd-register'); if(pr)pr.value='';
+  const pr2=document.getElementById('login-pwd-register2'); if(pr2)pr2.value='';
+  document.getElementById('reg-step-email').style.display='';
+  document.getElementById('reg-step-otp').style.display='none';
+  document.getElementById('reg-step-pwd').style.display='none';
+  document.querySelectorAll('.otp-digit').forEach(d=>d.value='');
+  window._pendingRegisterEmail = null;
   // Reset forgot fields
   const ef=document.getElementById('login-email-forgot'); if(ef){ef.value='';ef.style.display='';}
   const bf=document.getElementById('login-btn-forgot'); if(bf)bf.style.display='';
