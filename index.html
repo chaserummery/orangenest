@@ -311,6 +311,8 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
 .has-tip{position:relative}
 .has-tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1C1510;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;z-index:100;pointer-events:none;font-family:'DM Sans',sans-serif}
 .has-tip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1C1510;z-index:100}
+.otp-digit:focus{border-color:var(--orange)!important;box-shadow:0 0 0 3px var(--orange-light)}
+.otp-digit{transition:border-color .12s}
 .pwd-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--cream3);overflow:hidden}
 .pwd-strength-bar{height:100%;border-radius:2px;transition:width .2s,background .2s}
 .pwd-hint{font-size:11px;color:var(--ink3);margin-top:4px}
@@ -1065,6 +1067,63 @@ async function doSignIn(){
   showToast(currentLang==='en'?'✅ Signed in!':'✅ 登录成功！');
 }
 
+
+// ── OTP 验证码输入 ──
+function otpInput(el){
+  el.value = el.value.replace(/\D/,'');
+  if(el.value && el.nextElementSibling?.classList.contains('otp-digit')){
+    el.nextElementSibling.focus();
+  }
+  // Auto-verify when all 6 filled
+  const digits = Array.from(document.querySelectorAll('.otp-digit'));
+  if(digits.every(d=>d.value)) doVerifyOTP();
+}
+
+function otpKey(e, el){
+  if(e.key==='Backspace' && !el.value && el.previousElementSibling?.classList.contains('otp-digit')){
+    el.previousElementSibling.focus();
+    el.previousElementSibling.value='';
+  }
+}
+
+async function doVerifyOTP(){
+  const email = document.getElementById('login-sent-register').dataset.email || window._pendingRegisterEmail;
+  const digits = Array.from(document.querySelectorAll('.otp-digit'));
+  const token = digits.map(d=>d.value).join('');
+  if(token.length < 6){ showToast(currentLang==='en'?'Please enter the 6-digit code':'请输入6位验证码'); return; }
+  const btn = document.getElementById('verify-otp-btn');
+  btn.disabled=true; btn.textContent=currentLang==='en'?'Verifying…':'验证中…';
+  const { data, error } = await sb.auth.verifyOtp({ email, token, type:'email' });
+  if(error){
+    btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
+    showToast(currentLang==='en'?'Incorrect code, please try again':'验证码错误，请重试');
+    digits.forEach(d=>{ d.value=''; d.style.borderColor='var(--red)'; });
+    setTimeout(()=>digits.forEach(d=>d.style.borderColor='var(--cream3)'), 1500);
+    digits[0]?.focus();
+    return;
+  }
+  // OTP verified - now set password if pending
+  if(window._pendingRegisterPwd && data.user){
+    await sb.auth.updateUser({ password: window._pendingRegisterPwd });
+    localStorage.setItem('on_pwd_set_' + data.user.id, '1');
+    window._pendingRegisterPwd = null;
+  }
+  currentUser = data.user;
+  renderNavAuth();
+  closeLogin();
+  showToast(currentLang==='en'?'✅ Account created! Welcome!':'✅ 注册成功！欢迎使用');
+}
+
+async function doResendOTP(){
+  const email = document.getElementById('login-sent-register').dataset.email || window._pendingRegisterEmail;
+  if(!email) return;
+  await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: true } });
+  document.querySelectorAll('.otp-digit').forEach(d=>d.value='');
+  document.querySelector('.otp-digit')?.focus();
+  startResendCountdown();
+  showToast(currentLang==='en'?'New code sent!':'新验证码已发送！');
+}
+
 async function doResendRegister(){
   const email = document.getElementById('login-email-register').value ||
     document.getElementById('login-sent-register').dataset.email;
@@ -1250,12 +1309,12 @@ function fmtD(d){
 }
 function fmtS(d){
   if(!d) return '—';
-  const showYear = d.getFullYear() !== TODAY.getFullYear();
+  // Always show year
   if(currentLang==='en'){
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return showYear ? `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : `${months[d.getMonth()]} ${d.getDate()}`;
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   }
-  return showYear ? `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日` : `${d.getMonth()+1}月${d.getDate()}日`;
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
 }
 
 // ══ CARDS ══
@@ -1915,14 +1974,41 @@ function goStep(n){
   }
 }
 function previewPhotos(inp){
-  const p=document.getElementById('photo-preview');p.innerHTML='';
-  Array.from(inp.files).slice(0,6).forEach(f=>{
-    const r=new FileReader();r.onload=e=>{
-      const img=document.createElement('img');img.src=e.target.result;
-      img.style.cssText='width:72px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--cream3)';
-      p.appendChild(img);
-    };r.readAsDataURL(f);
+  const newFiles = Array.from(inp.files);
+  accumulatedFiles = [...accumulatedFiles, ...newFiles].slice(0,8);
+  renderPhotoPreview();
+  inp.value=''; // reset so same file can be added
+}
+
+function renderPhotoPreview(){
+  const p = document.getElementById('photo-preview');
+  p.innerHTML='';
+  accumulatedFiles.forEach((f,idx)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:relative;display:inline-block;margin:2px';
+      const img=document.createElement('img');
+      img.src=e.target.result;
+      img.style.cssText='width:80px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--cream3)';
+      const del=document.createElement('button');
+      del.innerHTML='×';
+      del.style.cssText='position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;padding:0';
+      del.onclick=()=>{ accumulatedFiles.splice(idx,1); renderPhotoPreview(); };
+      wrap.appendChild(img);
+      wrap.appendChild(del);
+      p.appendChild(wrap);
+    };
+    reader.readAsDataURL(f);
   });
+  // Count indicator
+  if(accumulatedFiles.length>0){
+    const cnt=document.createElement('div');
+    cnt.style.cssText='font-size:11px;color:var(--ink3);margin-top:6px;width:100%';
+    const min2=accumulatedFiles.length<2?` · <span style="color:var(--red)">${currentLang==='en'?'Min. 2 required':'至少需要2张'}</span>`:'';
+    cnt.innerHTML=`${accumulatedFiles.length}/8 ${currentLang==='en'?'photos':'张'}${min2}`;
+    p.appendChild(cnt);
+  }
 }
 function pt(g,v){
   if(g==='occ'&&v==='empty'){
@@ -2182,7 +2268,7 @@ const I18N = {
     nav_favs:'❤️ Saved', nav_mine:'My Posts', nav_post:'Post a Room',
     hero_eyebrow:'UIUC Student Housing Platform',
     hero_title:'Not just a room —<br>find your <em>home away from home</em>',
-    hero_sub:'No fees. No middlemen. Just students helping students.<br>Find your next sublet near UIUC — or post yours in minutes.',
+    hero_sub:'No fees. No middlemen. Message landlords directly.<br>Find or post a sublet near UIUC in minutes.',
     hero_cta:'Browse Rooms →',
     hiw_label:'How It Works', hiw_title:'3 Simple Steps',
     hiw1_num:'Step 01', hiw1_title:'Filter', hiw1_sub:'Enter your dates, budget, and pet needs',
