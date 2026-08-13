@@ -755,8 +755,8 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <div id="reg-step-pwd" style="display:none">
           <div style="text-align:center;margin-bottom:16px">
             <div style="font-size:32px;margin-bottom:8px">✅</div>
-            <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">验证成功！</div>
-            <div style="font-size:12px;color:var(--ink3)">设置密码，下次直接登录</div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px" id="reg-step-pwd-title">验证成功！</div>
+            <div style="font-size:12px;color:var(--ink3)" id="reg-step-pwd-desc">设置密码，下次直接登录</div>
           </div>
           <div style="position:relative">
             <input class="login-input" id="login-pwd-register" type="password" placeholder="设置密码（至少6位）" oninput="checkPwdStrength(this.value)" style="padding-right:44px"/>
@@ -1016,15 +1016,30 @@ async function doForgotPassword(){
   if(!email){ showToast(currentLang==='en'?'Please enter your email':'请输入邮箱'); return; }
   const btn = document.getElementById('login-btn-forgot');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Sending…':'发送中…';
-  const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '?reset_pwd=1'
-  });
-  btn.disabled=false; btn.textContent=currentLang==='en'?'Send reset email →':'发送重置邮件 →';
-  if(error){ showToast((currentLang==='en'?'Failed: ':'发送失败：')+error.message); return; }
-  document.getElementById('login-email-forgot').style.display='none';
-  document.getElementById('login-btn-forgot').style.display='none';
-  document.getElementById('login-forgot-back-row').style.display='none';
-  document.getElementById('login-sent-forgot').style.display='block';
+  try {
+    const res = await fetch('https://yrjagmymnsnxxexezyuf.supabase.co/functions/v1/send-otp', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyamFnbXltbnNueHhleGV6eXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NjEzNDUsImV4cCI6MjEwMTAzNzM0NX0.LSZmTNQsoiMIO46Gnzn1yHB8CdXHl-QDhfMDOhC4y0I','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyamFnbXltbnNueHhleGV6eXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NjEzNDUsImV4cCI6MjEwMTAzNzM0NX0.LSZmTNQsoiMIO46Gnzn1yHB8CdXHl-QDhfMDOhC4y0I'},
+      body: JSON.stringify({ email })
+    });
+    btn.disabled=false; btn.textContent=currentLang==='en'?'Send code →':'发送验证码 →';
+    if(!res.ok){ showToast(currentLang==='en'?'Failed to send code':'发送失败，请重试'); return; }
+    // 切换到注册面板的OTP步骤，但mode设为forgot
+    window._pendingRegisterEmail = email;
+    window._otpMode = 'forgot';
+    document.getElementById('login-panel-forgot').style.display='none';
+    document.getElementById('login-panel-register').style.display='';
+    document.getElementById('reg-step-email').style.display='none';
+    document.getElementById('reg-step-otp').style.display='';
+    document.getElementById('reg-step-pwd').style.display='none';
+    document.getElementById('otp-sent-to').textContent = currentLang==='en'?`Code sent to ${email}`:`验证码已发至 ${email}`;
+    document.getElementById('login-modal-title').textContent = currentLang==='en'?'Reset Password':'重设密码';
+    document.querySelector('.otp-digit')?.focus();
+    startResendCountdown();
+  } catch(e){
+    btn.disabled=false; btn.textContent=currentLang==='en'?'Send code →':'发送验证码 →';
+    showToast(currentLang==='en'?'Network error':'网络错误');
+  }
 }
 
 
@@ -1149,41 +1164,44 @@ async function doVerifyOTP(){
       digits[0]?.focus();
       return;
     }
-    // 验证通过 — 用密码注册/登录（用OTP作为临时密码确保能立即登录）
-    const tempPwd = 'ONest_' + otp + '_' + Date.now();
-    // 先尝试注册
-    const { data: signUpData, error: signUpErr } = await sb.auth.signUp({ email, password: tempPwd });
-    if(signUpErr && (signUpErr.message.includes('already') || signUpErr.message.includes('registered'))){
-      // 已有账号 — 发 magic link
-      await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: false } });
+    // 验证通过
+    const mode = window._otpMode || 'register';
+    const tempPwd = 'ONtemp_' + otp + '_' + Date.now();
+    if(mode === 'forgot'){
+      // 忘记密码流程：验证通过后直接进设置新密码步骤
+      // 先用 signInWithPassword 检查账号，没有就提示
       btn.disabled=false;
       document.getElementById('reg-step-otp').style.display='none';
-      document.getElementById('reg-step-email').style.display='';
-      closeLogin();
-      showToast(currentLang==='en'?'This email is registered — sign in link sent to your inbox':'该邮箱已注册，登录链接已发至邮箱');
-      return;
-    }
-    if(signUpErr){ 
-      btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
-      showToast((currentLang==='en'?'Error: ':'错误：')+signUpErr.message); return; 
-    }
-    // 注册成功，立即登录
-    const { data: signInData, error: signInErr } = await sb.auth.signInWithPassword({ email, password: tempPwd });
-    if(signInErr){
+      document.getElementById('reg-step-pwd').style.display='';
+      document.getElementById('reg-step-pwd-title').textContent = currentLang==='en'?'Set new password':'重设密码';
+      document.getElementById('reg-step-pwd-desc').textContent = currentLang==='en'?'Enter your new password':'输入新密码';
+      document.getElementById('set-reg-pwd-btn').textContent = currentLang==='en'?'Update password →':'更新密码 →';
+      document.getElementById('login-modal-title').textContent = currentLang==='en'?'Reset Password':'重设密码';
+      window._otpVerified = true;
+    } else {
+      // 注册流程：signUp（confirm email已关闭，直接有session）
+      const { data, error } = await sb.auth.signUp({ email, password: tempPwd });
+      if(error && (error.message.includes('already') || error.message.includes('registered'))){
+        btn.disabled=false;
+        document.getElementById('reg-step-otp').style.display='none';
+        document.getElementById('reg-step-email').style.display='';
+        document.getElementById('login-email-signin').value = email;
+        switchToSignIn();
+        showToast(currentLang==='en'?'This email is already registered. Please sign in.':'该邮箱已注册，请直接登录');
+        return;
+      }
+      if(error){ btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →'; showToast((currentLang==='en'?'Error: ':'错误：')+error.message); return; }
+      if(data.session){ currentUser = data.user; renderNavAuth(); }
+      window._tempOtpPwd = tempPwd;
       btn.disabled=false;
-      // session创建失败，发magic link兜底
-      await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: false } });
-      closeLogin();
-      showToast(currentLang==='en'?'✅ Account created! Check email to sign in.':'✅ 账号已创建！请查收邮件完成登录');
-      return;
+      document.getElementById('reg-step-otp').style.display='none';
+      document.getElementById('reg-step-pwd').style.display='';
+      document.getElementById('reg-step-pwd-title').textContent = currentLang==='en'?'Set your password':'设置密码';
+      document.getElementById('reg-step-pwd-desc').textContent = currentLang==='en'?'Set a password so you can sign in next time':'设置密码，下次直接登录';
+      document.getElementById('set-reg-pwd-btn').textContent = currentLang==='en'?'Complete registration →':'完成注册 →';
+      document.getElementById('login-modal-title').textContent = currentLang==='en'?'Set Password':'设置密码';
+      window._otpVerified = true;
     }
-    currentUser = signInData.user;
-    renderNavAuth();
-    btn.disabled=false;
-    // 显示设置密码步骤
-    document.getElementById('reg-step-otp').style.display='none';
-    document.getElementById('reg-step-pwd').style.display='';
-    document.getElementById('login-modal-title').textContent = currentLang==='en'?'Set a Password':'设置密码';
   } catch(e){
     btn.disabled=false; btn.textContent=currentLang==='en'?'Verify →':'验证 →';
     showToast(currentLang==='en'?'Network error':'网络错误');
@@ -1250,16 +1268,48 @@ async function doSetRegPassword(){
   if(pwd !== pwd2){ showToast(currentLang==='en'?'Passwords do not match':'两次密码不一致'); return; }
   const btn = document.getElementById('set-reg-pwd-btn');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Saving…':'保存中…';
-  const { error } = await sb.auth.updateUser({ password: pwd });
-  btn.disabled=false; btn.textContent=currentLang==='en'?'Complete →':'完成注册 →';
-  if(error){ showToast((currentLang==='en'?'Failed: ':'失败：')+error.message); return; }
-  if(currentUser) localStorage.setItem('on_pwd_set_'+currentUser.id,'1');
-  closeLogin();
-  showToast(currentLang==='en'?'✅ All set! Welcome!':'✅ 注册完成！欢迎使用');
+  const mode = window._otpMode || 'register';
+
+  if(mode === 'forgot'){
+    // 忘记密码：先用临时密码登录，再更新密码
+    const email = window._pendingRegisterEmail;
+    // 用 Supabase admin 没有 session，改用 signInWithPassword + 新密码直接 update
+    // 需要先有 session，通过 signUp（如果已存在则会失败）然后 signIn
+    // 实际上忘记密码时用户没有 session，需要通过 admin 更新
+    // 用 service role 的 Edge Function 更新密码
+    try {
+      const res = await fetch('https://yrjagmymnsnxxexezyuf.supabase.co/functions/v1/reset-password', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyamFnbXltbnNueHhleGV6eXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NjEzNDUsImV4cCI6MjEwMTAzNzM0NX0.LSZmTNQsoiMIO46Gnzn1yHB8CdXHl-QDhfMDOhC4y0I','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyamFnbXltbnNueHhleGV6eXVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NjEzNDUsImV4cCI6MjEwMTAzNzM0NX0.LSZmTNQsoiMIO46Gnzn1yHB8CdXHl-QDhfMDOhC4y0I'},
+        body: JSON.stringify({ email, password: pwd })
+      });
+      btn.disabled=false;
+      if(!res.ok){ showToast(currentLang==='en'?'Failed to update password':'密码更新失败'); return; }
+      // 密码更新成功，自动登录
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+      if(!error && data.session){ currentUser = data.user; renderNavAuth(); }
+      closeLogin();
+      window._otpMode = null; window._pendingRegisterEmail = null;
+      showToast(currentLang==='en'?'✅ Password updated! You are now signed in.':'✅ 密码已更新，已自动登录');
+    } catch(e){
+      btn.disabled=false;
+      showToast(currentLang==='en'?'Network error':'网络错误');
+    }
+  } else {
+    // 注册流程：已有session，直接 updateUser
+    const { error } = await sb.auth.updateUser({ password: pwd });
+    btn.disabled=false;
+    if(error){ showToast((currentLang==='en'?'Failed: ':'失败：')+error.message); return; }
+    if(currentUser) localStorage.setItem('on_pwd_set_'+currentUser.id,'1');
+    window._otpMode = null; window._tempOtpPwd = null;
+    closeLogin();
+    showToast(currentLang==='en'?'✅ All set! Welcome!':'✅ 注册完成！欢迎使用');
+  }
 }
 
 function skipRegPassword(){
   closeLogin();
+  window._otpMode = null;
   showToast(currentLang==='en'?'✅ Welcome! You can set a password in Account Settings.':'✅ 欢迎！可在账号设置中添加密码');
 }
 
