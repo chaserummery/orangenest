@@ -589,7 +589,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
           <span class="fhint" style="color:var(--red);font-weight:500" id="hint-addr-privacy">⚠️ 请勿填写具体房间号，以保护租客隐私</span></div>
         <div class="ff"><label class="flabel2" id="lbl-unit">房型描述 <span class="req">*</span></label><input class="fi" id="f-unit" type="text" placeholder="如：1室1卫 · 独立卫浴 · 全家具"/></div>
         <div class="fr2">
-          <div class="ff"><label class="flabel2" id="lbl-bed">卧室 <span class="req">*</span></label><select class="fi" id="f-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧+</option></select></div>
+          <div class="ff"><label class="flabel2" id="lbl-bed">卧室 <span class="req">*</span></label><select class="fi" id="f-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧</option><option value="4">4卧</option><option value="5">5卧+</option></select></div>
           <div class="ff"><label class="flabel2" id="lbl-bath">卫生间 <span class="req">*</span></label><select class="fi" id="f-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
         </div>
         <div class="fr2">
@@ -871,7 +871,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <div class="ff"><label class="flabel2" id="e-lbl-to">到期日期</label><input class="fi" id="e-avail-to" type="date"/></div>
       </div>
       <div class="fr2">
-        <div class="ff"><label class="flabel2" id="e-lbl-bed">卧室</label><select class="fi" id="e-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧+</option></select></div>
+        <div class="ff"><label class="flabel2" id="e-lbl-bed">卧室</label><select class="fi" id="e-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧</option><option value="4">4卧</option><option value="5">5卧+</option></select></div>
         <div class="ff"><label class="flabel2" id="e-lbl-bath">卫生间</label><select class="fi" id="e-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
       </div>
       <div class="ff"><label class="flabel2" id="e-lbl-price">月租金（$）</label><input class="fi" id="e-price" type="number"/></div>
@@ -1592,9 +1592,11 @@ function buildInfo(){
   const r = cur;
   const bedBath = currentLang==='en'?`${r.bed} bed / ${r.bath} bath`:`${r.bed}卧${r.bath}卫`;
   const occStatus = r.newUnit?t('info_vacant'):r.occGender?(currentLang==='en'?(r.occGender==='女'?'Female roommate':'Male roommate'):`有${r.occGender}生同住`):'—';
-  document.getElementById('d-info').innerHTML = [
+  const unitDesc = r.unit ? (currentLang==='en'?translateUnit(r.unit):r.unit) : null;
+  const rows = [
     [currentLang==='en'?'Address':'地址', r.addrFull],
     [currentLang==='en'?'Layout':'户型', bedBath],
+    ...(unitDesc ? [[currentLang==='en'?'Description':'房型描述', unitDesc]] : []),
     [t('info_price'), `$${r.price}`],
     [t('info_avail_from'), fmtD(r.availFrom)],
     [t('info_avail_to'), fmtD(r.availTo)],
@@ -1604,7 +1606,9 @@ function buildInfo(){
     [currentLang==='en'?'Room Status':'房间状态', occStatus],
     [currentLang==='en'?'Max Occupants':'最多入住', currentLang==='en'?`${r.maxPpl} person${r.maxPpl>1?'s':''}`:`${r.maxPpl}人`],
     [t('info_posted'), timeAgo(r.createdAt)]
-  ].map(([l,v])=>`<div class="icell"><div class="iclabel">${l}</div><div class="icval">${v}</div></div>`).join('');
+  ];
+  document.getElementById('d-info').innerHTML = rows
+    .map(([l,v])=>`<div class="icell"><div class="iclabel">${l}</div><div class="icval">${v}</div></div>`).join('');
 }
 
 function jumpToday(){ calY=TODAY.getFullYear();calM=TODAY.getMonth();renderCal() }
@@ -2523,7 +2527,7 @@ const I18N = {
     pt_flex_y:'可以商量', pt_flex_n:'固定',
     pt_renew_y:'可续租', pt_renew_n:'不续租',
     maxppl_1:'1人', maxppl_2:'2人', maxppl_3:'3人', maxppl_4:'4人+',
-    bed_opt1:'1卧', bed_opt2:'2卧', bed_opt3:'3卧+',
+    bed_opt1:'1卧', bed_opt2:'2卧', bed_opt3:'3卧', bed_opt4:'4卧', bed_opt5:'5卧+',
     bath_opt1:'1卫', bath_opt2:'2卫', bath_opt3:'3卫+',
     addr_ph:'如：706 S Mathews Ave, Urbana, IL 61801',
     unit_ph:'如：1室1卫 · 独立卫浴 · 全家具',
@@ -2605,7 +2609,7 @@ const I18N = {
     pt_flex_y:'Flexible', pt_flex_n:'Fixed',
     pt_renew_y:'Renewable', pt_renew_n:'No renewal',
     maxppl_1:'1 person', maxppl_2:'2 people', maxppl_3:'3 people', maxppl_4:'4+ people',
-    bed_opt1:'1 bed', bed_opt2:'2 beds', bed_opt3:'3+ beds',
+    bed_opt1:'1 bed', bed_opt2:'2 beds', bed_opt3:'3 beds', bed_opt4:'4 beds', bed_opt5:'5+ beds',
     bath_opt1:'1 bath', bath_opt2:'2 baths', bath_opt3:'3+ baths',
     addr_ph:'e.g. 706 S Mathews Ave, Urbana, IL 61801',
     unit_ph:'e.g. 1 bed/1 bath · Private bathroom · Furnished',
@@ -2883,7 +2887,7 @@ function applyLang(){
 
   // ── Select options ──
   const fbed=document.getElementById('f-bed');
-  if(fbed){ fbed.options[0].text=t('bed_opt1');fbed.options[1].text=t('bed_opt2');fbed.options[2].text=t('bed_opt3'); }
+  if(fbed){ fbed.options[0].text=t('bed_opt1');fbed.options[1].text=t('bed_opt2');fbed.options[2].text=t('bed_opt3');fbed.options[3].text=t('bed_opt4');fbed.options[4].text=t('bed_opt5'); }
   const fbath=document.getElementById('f-bath');
   if(fbath){ fbath.options[0].text=t('bath_opt1');fbath.options[1].text=t('bath_opt2');fbath.options[2].text=t('bath_opt3'); }
   const fmaxppl=document.getElementById('f-maxppl');
@@ -2959,7 +2963,7 @@ function applyLang(){
   });
   // Edit modal bed/bath options
   const eBed = document.getElementById('e-bed');
-  if(eBed){ eBed.options[0].text=t('bed_opt1');eBed.options[1].text=t('bed_opt2');eBed.options[2].text=t('bed_opt3'); }
+  if(eBed){ eBed.options[0].text=t('bed_opt1');eBed.options[1].text=t('bed_opt2');eBed.options[2].text=t('bed_opt3');eBed.options[3].text=t('bed_opt4');eBed.options[4].text=t('bed_opt5'); }
   const eBath = document.getElementById('e-bath');
   if(eBath){ eBath.options[0].text=t('bath_opt1');eBath.options[1].text=t('bath_opt2');eBath.options[2].text=t('bath_opt3'); }
 
