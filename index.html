@@ -661,7 +661,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <div style="font-size:12px;color:var(--ink3);margin-bottom:5px" id="upload-status">上传中…</div>
         <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
       </div>
-      <div class="fbrow"><button class="fbback" id="btn-back3" onclick="goStep(2)">← 返回</button><button class="fbnext" id="submit-btn" onclick="submitListing()" id="btn-submit">发布房源 🎉</button></div>
+      <div class="fbrow"><button class="fbback" id="btn-back3" onclick="goStep(2)">← 返回</button><button class="fbnext" id="btn-submit" onclick="submitListing()">发布房源 🎉</button></div>
     </div>
     <div class="fp" id="fp4">
       <div class="success-wrap">
@@ -1387,9 +1387,26 @@ function doFilter(){
   const fF = document.getElementById('f-from').value;
   const fT = document.getElementById('f-to').value;
   let res = ALL_ROOMS.filter(r => {
-    if(fF&&fT){ if(r.availTo<new Date(fF+'T00:00:00')||r.availFrom>new Date(fT+'T00:00:00')) return false }
-    else if(fF){ if(r.availTo<new Date(fF+'T00:00:00')) return false }
-    else if(fT){ if(r.availFrom>new Date(fT+'T00:00:00')) return false }
+    if(fF&&fT){ 
+      // Room must be available for the ENTIRE selected period
+      // r.availFrom <= user's from AND r.availTo >= user's to
+      const from = new Date(fF+'T00:00:00');
+      const to = new Date(fT+'T00:00:00');
+      if(!r.availFrom||!r.availTo) return false;
+      if(r.availFrom > from || r.availTo < to) return false;
+    }
+    else if(fF){ 
+      // Only from selected: room must be available on or before that date
+      const from = new Date(fF+'T00:00:00');
+      if(!r.availFrom||!r.availTo) return false;
+      if(r.availFrom > from || r.availTo < from) return false;
+    }
+    else if(fT){ 
+      // Only to selected: room must still be available on that date
+      const to = new Date(fT+'T00:00:00');
+      if(!r.availFrom||!r.availTo) return false;
+      if(r.availTo < to || r.availFrom > to) return false;
+    }
     if(sel.bed&&r.bed<parseInt(sel.bed)) return false;
     if(sel.bath&&r.bath<parseInt(sel.bath)) return false;
     if(sel.ppl&&r.maxPpl<parseInt(sel.ppl)) return false;
@@ -1499,17 +1516,20 @@ function cardHTML(r){
 function translateUnit(unit){
   if(!unit || currentLang !== 'en') return unit || '';
   return unit
+    .replace(/(\d+)\s*室\s*(\d+)\s*厅\s*(\d+)\s*卫[浴]?/g, (_,r,l,ba)=>`${r}bed/${l}living/${ba}bath`)
+    .replace(/(\d+)\s*室\s*(\d+)\s*卫[浴]?/g, (_,r,ba)=>`${r}bed/${ba}bath`)
     .replace(/(\d+)\s*室\s*(\d+)\s*厅/g, (_,r,l)=>`${r}bed/${l}living`)
-    .replace(/(\d+)\s*卧\s*(\d+)\s*卫/g, (_,b,ba)=>`${b}bed/${ba}bath`)
+    .replace(/(\d+)\s*卧\s*(\d+)\s*卫[浴]?/g, (_,b,ba)=>`${b}bed/${ba}bath`)
     .replace(/一室一厅/g,'1bed/1living').replace(/两室一厅/g,'2bed/1living').replace(/三室一厅/g,'3bed/1living')
     .replace(/四室一厅/g,'4bed/1living').replace(/五室一厅/g,'5bed/1living')
     .replace(/一室一卫/g,'1bed/1bath').replace(/两室一卫/g,'2bed/1bath').replace(/三室一卫/g,'3bed/1bath')
-    .replace(/卧室/g,'bed').replace(/卫生间/g,'bath').replace(/厨房/g,'kitchen')
+    .replace(/卧室/g,'bed').replace(/卫生间/g,'bath').replace(/卫浴/g,'bath').replace(/厨房/g,'kitchen')
     .replace(/客厅/g,'living room').replace(/独卫/g,'private bath').replace(/共用/g,'shared')
     .replace(/独立/g,'private').replace(/精装/g,'renovated')
     .replace(/全家具/g,'fully furnished').replace(/带家具/g,'furnished').replace(/无家具/g,'unfurnished')
     .replace(/朝南/g,'south-facing').replace(/朝北/g,'north-facing')
-    .replace(/一楼/g,'1st floor').replace(/顶楼/g,'top floor');
+    .replace(/一楼/g,'1st floor').replace(/顶楼/g,'top floor')
+    .replace(/(\d+)\s*室/g,(_,n)=>`${n}bed`).replace(/(\d+)\s*卫[浴]?/g,(_,n)=>`${n}bath`).replace(/(\d+)\s*厅/g,(_,n)=>`${n}living`);
 }
 
 function renderCards(list){
@@ -2057,7 +2077,7 @@ async function submitListing(){
   const files = accumulatedFiles;
   if(!wechat){ showToast(currentLang==='en'?'Please enter your WeChat ID':'请填写微信号'); return; }
   if(!files || files.length < 2){ showToast(currentLang==='en'?'Please upload at least 2 photos · Suggest: living room, bedroom, bathroom':'请至少上传2张照片 · 建议：客厅、卧室、卫生间'); return; }
-  const btn = document.getElementById('submit-btn');
+  const btn = document.getElementById('btn-submit');
   btn.disabled=true; btn.textContent=currentLang==='en'?'Posting…':'发布中…';
   document.getElementById('upload-progress').style.display='block';
   try {
@@ -2122,7 +2142,7 @@ function resetForm(){
   const origPriceEl = document.getElementById('f-orig-price');
   if(origPriceEl) origPriceEl.value='';
   document.querySelectorAll('.topt').forEach(e=>e.classList.remove('sy','sn','sb'));
-  const btn=document.getElementById('submit-btn');
+  const btn=document.getElementById('btn-submit');
   if(btn){ btn.disabled=false; btn.textContent=currentLang==='en'?'Post Room 🎉':'发布房源 🎉'; }
 }
 
@@ -2145,6 +2165,17 @@ function goStep(n){
     else if(i===n){d.classList.add('active');d.textContent=i;l?.classList.add('active')}
     else d.textContent=i;
   }
+  // Re-apply button translations for the current step
+  const L = currentLang==='en';
+  const btnMap = {
+    'btn-next1': L?'Next: Conditions →':'下一步：入住条件 →',
+    'btn-next2': L?'Next: Photos & Contact →':'下一步：照片联系 →',
+    'btn-back2': L?'← Back':'← 返回',
+    'btn-back3': L?'← Back':'← 返回',
+    'btn-submit': L?'Post Room 🎉':'发布房源 🎉',
+    'btn-home':   L?'Back to Home':'回到首页',
+  };
+  Object.entries(btnMap).forEach(([id,txt])=>{ const el=document.getElementById(id); if(el) el.textContent=txt; });
 }
 function previewPhotos(inp){
   const newFiles = Array.from(inp.files);
