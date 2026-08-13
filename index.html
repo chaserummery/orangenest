@@ -1388,24 +1388,24 @@ function doFilter(){
   const fT = document.getElementById('f-to').value;
   let res = ALL_ROOMS.filter(r => {
     if(fF&&fT){ 
-      // Room must be available for the ENTIRE selected period
-      // r.availFrom <= user's from AND r.availTo >= user's to
+      // 房源 availFrom <= 用户from，且 availTo >= 用户to
       const from = new Date(fF+'T00:00:00');
       const to = new Date(fT+'T00:00:00');
       if(!r.availFrom||!r.availTo) return false;
       if(r.availFrom > from || r.availTo < to) return false;
     }
     else if(fF){ 
-      // Only from selected: room must be available on or before that date
+      // 只选了入住日：房源必须在那天或之前就有空，且还没到期
       const from = new Date(fF+'T00:00:00');
       if(!r.availFrom||!r.availTo) return false;
-      if(r.availFrom > from || r.availTo < from) return false;
+      if(r.availFrom > from) return false; // 房源开始日必须 <= 用户选的入住日
+      if(r.availTo < from) return false;   // 房源不能已经到期
     }
     else if(fT){ 
-      // Only to selected: room must still be available on that date
+      // 只选了截止日：房源必须撑到那天或更晚
       const to = new Date(fT+'T00:00:00');
-      if(!r.availFrom||!r.availTo) return false;
-      if(r.availTo < to || r.availFrom > to) return false;
+      if(!r.availTo) return false;
+      if(r.availTo < to) return false;
     }
     if(sel.bed&&r.bed<parseInt(sel.bed)) return false;
     if(sel.bath&&r.bath<parseInt(sel.bath)) return false;
@@ -2187,30 +2187,107 @@ function previewPhotos(inp){
 function renderPhotoPreview(){
   const p = document.getElementById('photo-preview');
   p.innerHTML='';
+  let dragIdx = null;
+
   accumulatedFiles.forEach((f,idx)=>{
     const reader=new FileReader();
     reader.onload=e=>{
       const wrap=document.createElement('div');
-      wrap.style.cssText='position:relative;display:inline-block;margin:2px';
+      wrap.draggable=true;
+      wrap.dataset.idx=idx;
+      wrap.style.cssText='position:relative;display:inline-block;margin:2px;cursor:grab;user-select:none;touch-action:none';
+
       const img=document.createElement('img');
       img.src=e.target.result;
-      img.style.cssText='width:80px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--cream3)';
+      img.style.cssText='width:80px;height:60px;object-fit:cover;border-radius:8px;border:1.5px solid var(--cream3);display:block;pointer-events:none';
+
+      // First photo badge
+      if(idx===0){
+        const badge=document.createElement('div');
+        badge.textContent=currentLang==='en'?'Cover':'封面';
+        badge.style.cssText='position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:4px;pointer-events:none';
+        wrap.appendChild(badge);
+      }
+
       const del=document.createElement('button');
       del.innerHTML='×';
-      del.style.cssText='position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;padding:0';
-      del.onclick=()=>{ accumulatedFiles.splice(idx,1); renderPhotoPreview(); };
+      del.style.cssText='position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;z-index:2';
+      del.onclick=(ev)=>{ ev.stopPropagation(); accumulatedFiles.splice(idx,1); renderPhotoPreview(); };
+
+      // Drag events
+      wrap.addEventListener('dragstart',ev=>{
+        dragIdx=idx;
+        wrap.style.opacity='0.4';
+        ev.dataTransfer.effectAllowed='move';
+      });
+      wrap.addEventListener('dragend',()=>{ wrap.style.opacity='1'; });
+      wrap.addEventListener('dragover',ev=>{
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect='move';
+        wrap.style.outline='2px solid var(--orange)';
+      });
+      wrap.addEventListener('dragleave',()=>{ wrap.style.outline=''; });
+      wrap.addEventListener('drop',ev=>{
+        ev.preventDefault();
+        wrap.style.outline='';
+        if(dragIdx===null||dragIdx===idx) return;
+        const moved=accumulatedFiles.splice(dragIdx,1)[0];
+        accumulatedFiles.splice(idx,0,moved);
+        dragIdx=null;
+        renderPhotoPreview();
+      });
+
+      // Touch drag for mobile
+      let touchStartX=0,touchStartY=0,touchClone=null;
+      wrap.addEventListener('touchstart',ev=>{
+        dragIdx=idx;
+        touchStartX=ev.touches[0].clientX;
+        touchStartY=ev.touches[0].clientY;
+        touchClone=wrap.cloneNode(true);
+        touchClone.style.cssText=`position:fixed;opacity:.7;pointer-events:none;z-index:9999;width:80px;height:60px;left:${touchStartX-40}px;top:${touchStartY-30}px`;
+        document.body.appendChild(touchClone);
+        wrap.style.opacity='.3';
+      },{passive:true});
+      wrap.addEventListener('touchmove',ev=>{
+        if(!touchClone)return;
+        const tx=ev.touches[0].clientX,ty=ev.touches[0].clientY;
+        touchClone.style.left=(tx-40)+'px';
+        touchClone.style.top=(ty-30)+'px';
+        // Find target element under touch
+        const el=document.elementFromPoint(tx,ty);
+        const target=el?.closest('[data-idx]');
+        if(target) p.querySelectorAll('[data-idx]').forEach(w=>{ w.style.outline=w===target?'2px solid var(--orange)':''; });
+      },{passive:true});
+      wrap.addEventListener('touchend',ev=>{
+        if(touchClone){touchClone.remove();touchClone=null;}
+        wrap.style.opacity='1';
+        p.querySelectorAll('[data-idx]').forEach(w=>w.style.outline='');
+        const tx=ev.changedTouches[0].clientX,ty=ev.changedTouches[0].clientY;
+        const el=document.elementFromPoint(tx,ty);
+        const target=el?.closest('[data-idx]');
+        const toIdx=target?parseInt(target.dataset.idx):null;
+        if(toIdx!==null&&toIdx!==dragIdx){
+          const moved=accumulatedFiles.splice(dragIdx,1)[0];
+          accumulatedFiles.splice(toIdx,0,moved);
+          renderPhotoPreview();
+        }
+        dragIdx=null;
+      });
+
       wrap.appendChild(img);
       wrap.appendChild(del);
       p.appendChild(wrap);
     };
     reader.readAsDataURL(f);
   });
-  // Count indicator
+
+  // Count + hint
   if(accumulatedFiles.length>0){
     const cnt=document.createElement('div');
     cnt.style.cssText='font-size:11px;color:var(--ink3);margin-top:6px;width:100%';
     const min2=accumulatedFiles.length<2?` · <span style="color:var(--red)">${currentLang==='en'?'Min. 2 required':'至少需要2张'}</span>`:'';
-    cnt.innerHTML=`${accumulatedFiles.length}/8 ${currentLang==='en'?'photos':'张'}${min2}`;
+    const dragHint=accumulatedFiles.length>1?` · <span style="color:var(--ink3)">${currentLang==='en'?'Drag to reorder':'拖动可排序'}</span>`:'';
+    cnt.innerHTML=`${accumulatedFiles.length}/8 ${currentLang==='en'?'photos':'张'}${min2}${dragHint}`;
     p.appendChild(cnt);
   }
 }
