@@ -590,7 +590,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
         <div class="ff"><label class="flabel2" id="lbl-unit">房型描述 <span class="req">*</span></label><input class="fi" id="f-unit" type="text" placeholder="如：1室1卫 · 独立卫浴 · 全家具"/></div>
         <div class="fr2">
           <div class="ff"><label class="flabel2" id="lbl-bed">卧室 <span class="req">*</span></label><select class="fi" id="f-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧</option><option value="4">4卧</option><option value="5">5卧+</option></select></div>
-          <div class="ff"><label class="flabel2" id="lbl-bath">卫生间 <span class="req">*</span></label><select class="fi" id="f-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
+          <div class="ff"><label class="flabel2" id="lbl-bath">卫生间 <span class="req">*</span></label><select class="fi" id="f-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫</option><option value="4">4卫+</option></select></div>
         </div>
         <div class="fr2">
           <div class="ff"><label class="flabel2" id="lbl-avail-from">可入住 <span class="req">*</span></label><input class="fi" id="f-avail-from" type="date"/></div>
@@ -872,7 +872,7 @@ textarea.fi{resize:none;height:80px;line-height:1.5}
       </div>
       <div class="fr2">
         <div class="ff"><label class="flabel2" id="e-lbl-bed">卧室</label><select class="fi" id="e-bed"><option value="1">1卧</option><option value="2">2卧</option><option value="3">3卧</option><option value="4">4卧</option><option value="5">5卧+</option></select></div>
-        <div class="ff"><label class="flabel2" id="e-lbl-bath">卫生间</label><select class="fi" id="e-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫+</option></select></div>
+        <div class="ff"><label class="flabel2" id="e-lbl-bath">卫生间</label><select class="fi" id="e-bath"><option value="1">1卫</option><option value="2">2卫</option><option value="3">3卫</option><option value="4">4卫+</option></select></div>
       </div>
       <div class="ff"><label class="flabel2" id="e-lbl-price">月租金（$）</label><input class="fi" id="e-price" type="number"/></div>
       <div class="ff"><label class="flabel2" id="e-lbl-pet">宠物</label>
@@ -2528,7 +2528,7 @@ const I18N = {
     pt_renew_y:'可续租', pt_renew_n:'不续租',
     maxppl_1:'1人', maxppl_2:'2人', maxppl_3:'3人', maxppl_4:'4人+',
     bed_opt1:'1卧', bed_opt2:'2卧', bed_opt3:'3卧', bed_opt4:'4卧', bed_opt5:'5卧+',
-    bath_opt1:'1卫', bath_opt2:'2卫', bath_opt3:'3卫+',
+    bath_opt1:'1卫', bath_opt2:'2卫', bath_opt3:'3卫', bath_opt4:'4卫+',
     addr_ph:'如：706 S Mathews Ave, Urbana, IL 61801',
     unit_ph:'如：1室1卫 · 独立卫浴 · 全家具',
     note_ph:'如：女生优先 · 含水电网 · 有停车位',
@@ -2610,7 +2610,7 @@ const I18N = {
     pt_renew_y:'Renewable', pt_renew_n:'No renewal',
     maxppl_1:'1 person', maxppl_2:'2 people', maxppl_3:'3 people', maxppl_4:'4+ people',
     bed_opt1:'1 bed', bed_opt2:'2 beds', bed_opt3:'3 beds', bed_opt4:'4 beds', bed_opt5:'5+ beds',
-    bath_opt1:'1 bath', bath_opt2:'2 baths', bath_opt3:'3+ baths',
+    bath_opt1:'1 bath', bath_opt2:'2 baths', bath_opt3:'3 baths', bath_opt4:'4+ baths',
     addr_ph:'e.g. 706 S Mathews Ave, Urbana, IL 61801',
     unit_ph:'e.g. 1 bed/1 bath · Private bathroom · Furnished',
     note_ph:'e.g. Female preferred · Utilities included · Parking available',
@@ -2889,7 +2889,7 @@ function applyLang(){
   const fbed=document.getElementById('f-bed');
   if(fbed){ fbed.options[0].text=t('bed_opt1');fbed.options[1].text=t('bed_opt2');fbed.options[2].text=t('bed_opt3');fbed.options[3].text=t('bed_opt4');fbed.options[4].text=t('bed_opt5'); }
   const fbath=document.getElementById('f-bath');
-  if(fbath){ fbath.options[0].text=t('bath_opt1');fbath.options[1].text=t('bath_opt2');fbath.options[2].text=t('bath_opt3'); }
+  if(fbath){ fbath.options[0].text=t('bath_opt1');fbath.options[1].text=t('bath_opt2');fbath.options[2].text=t('bath_opt3');fbath.options[3].text=t('bath_opt4'); }
   const fmaxppl=document.getElementById('f-maxppl');
   if(fmaxppl){ fmaxppl.options[0].text=t('maxppl_1');fmaxppl.options[1].text=t('maxppl_2');fmaxppl.options[2].text=t('maxppl_3');fmaxppl.options[3].text=t('maxppl_4'); }
 
@@ -2965,7 +2965,7 @@ function applyLang(){
   const eBed = document.getElementById('e-bed');
   if(eBed){ eBed.options[0].text=t('bed_opt1');eBed.options[1].text=t('bed_opt2');eBed.options[2].text=t('bed_opt3');eBed.options[3].text=t('bed_opt4');eBed.options[4].text=t('bed_opt5'); }
   const eBath = document.getElementById('e-bath');
-  if(eBath){ eBath.options[0].text=t('bath_opt1');eBath.options[1].text=t('bath_opt2');eBath.options[2].text=t('bath_opt3'); }
+  if(eBath){ eBath.options[0].text=t('bath_opt1');eBath.options[1].text=t('bath_opt2');eBath.options[2].text=t('bath_opt3');eBath.options[3].text=t('bath_opt4'); }
 
   // ── Photo upload label ──
   const photoClickLabel = document.getElementById('photo-click-label');
